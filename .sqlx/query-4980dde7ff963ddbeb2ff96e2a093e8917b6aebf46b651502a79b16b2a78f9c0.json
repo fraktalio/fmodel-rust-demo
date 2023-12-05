@@ -1,0 +1,76 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT * FROM events WHERE decider_id = $1 ORDER BY events.offset",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "event",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 1,
+        "name": "event_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 2,
+        "name": "decider",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 3,
+        "name": "decider_id",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 4,
+        "name": "data",
+        "type_info": "Jsonb"
+      },
+      {
+        "ordinal": 5,
+        "name": "command_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 6,
+        "name": "previous_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 7,
+        "name": "final",
+        "type_info": "Bool"
+      },
+      {
+        "ordinal": 8,
+        "name": "created_at",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 9,
+        "name": "offset",
+        "type_info": "Int8"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Text"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      true,
+      true,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "4980dde7ff963ddbeb2ff96e2a093e8917b6aebf46b651502a79b16b2a78f9c0"
+}

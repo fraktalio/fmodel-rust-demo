@@ -1,0 +1,83 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO events (event, event_id, decider, decider_id, data, command_id, previous_id, final)\n            VALUES ($1, $2, $3, $4, $5, $6, $7, $8)\n            RETURNING *",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "event",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 1,
+        "name": "event_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 2,
+        "name": "decider",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 3,
+        "name": "decider_id",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 4,
+        "name": "data",
+        "type_info": "Jsonb"
+      },
+      {
+        "ordinal": 5,
+        "name": "command_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 6,
+        "name": "previous_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 7,
+        "name": "final",
+        "type_info": "Bool"
+      },
+      {
+        "ordinal": 8,
+        "name": "created_at",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 9,
+        "name": "offset",
+        "type_info": "Int8"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Text",
+        "Uuid",
+        "Text",
+        "Text",
+        "Jsonb",
+        "Uuid",
+        "Uuid",
+        "Bool"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      true,
+      true,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "109ab10341ee60e8ccf50a63f5974aadbc7dc6627784c47f36722bb475a83799"
+}

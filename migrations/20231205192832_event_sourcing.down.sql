@@ -1,0 +1,13 @@
+DROP TRIGGER IF EXISTS t_check_first_event_for_decider ON events;
+DROP TRIGGER IF EXISTS t_check_final_event_for_decider ON events;
+DROP TRIGGER IF EXISTS t_check_previous_id_in_same_decider ON events;
+DROP FUNCTION IF EXISTS check_first_event_for_decider();
+DROP FUNCTION IF EXISTS check_final_event_for_decider();
+DROP FUNCTION IF EXISTS check_previous_id_in_same_decider();
+DROP RULE IF EXISTS ignore_delete_decider_events ON deciders;
+DROP RULE IF EXISTS ignore_update_decider_events ON deciders;
+DROP RULE IF EXISTS ignore_delete_events ON events;
+DROP RULE IF EXISTS ignore_update_events ON events;
+DROP TABLE IF EXISTS events CASCADE;
+DROP TABLE IF EXISTS deciders CASCADE;
+DROP INDEX IF EXISTS decider_index;

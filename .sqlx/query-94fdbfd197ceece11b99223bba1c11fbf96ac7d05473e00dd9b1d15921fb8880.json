@@ -1,0 +1,29 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO restaurants (id, data)\n            VALUES ($1, $2)\n         ON CONFLICT ON CONSTRAINT restaurants_pkey\n         DO UPDATE SET data = EXCLUDED.data\n         RETURNING *",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 1,
+        "name": "data",
+        "type_info": "Jsonb"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Varchar",
+        "Jsonb"
+      ]
+    },
+    "nullable": [
+      false,
+      true
+    ]
+  },
+  "hash": "94fdbfd197ceece11b99223bba1c11fbf96ac7d05473e00dd9b1d15921fb8880"
+}

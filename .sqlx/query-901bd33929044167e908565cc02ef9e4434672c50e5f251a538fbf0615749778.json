@@ -1,0 +1,29 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO deciders (decider, event) VALUES ($1, $2) RETURNING *;",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "decider",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 1,
+        "name": "event",
+        "type_info": "Text"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Text",
+        "Text"
+      ]
+    },
+    "nullable": [
+      false,
+      false
+    ]
+  },
+  "hash": "901bd33929044167e908565cc02ef9e4434672c50e5f251a538fbf0615749778"
+}

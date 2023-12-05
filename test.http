@@ -1,0 +1,74 @@
+### Health Checker
+
+GET localhost:8000/api/healthchecker
+
+### Order Commands
+
+POST http://localhost:8000/api/commands/order
+Content-Type: application/json
+
+{
+  "identifier": "3ac06cc7-0b59-436e-8c54-576f3cca01a9",
+  "restaurant_identifier": "4ac06cc7-0b59-436e-8c54-576f3cca01a9",
+  "type": "Create",
+  "line_items": [
+    {
+      "menu_item_id": "6ac06cc7-0b59-436e-8c54-576f3cca01a9",
+      "name": "menuItemName",
+      "quantity": 2,
+      "id": "5ac06cc7-0b59-436e-8c54-576f3cca01a9"
+    }
+  ]
+}
+
+### Restaurant Commands
+
+POST http://localhost:8000/api/commands/restaurant
+Content-Type: application/json
+
+{
+  "identifier": "3ac06cc7-0b59-436e-8c54-576f3cca01a8",
+  "name": "ce-vap",
+  "type": "CreateRestaurant",
+  "menu": {
+    "items": [
+      {
+        "id": "bf273f6c-0702-450c-9d44-34913e248378",
+        "name": "menuItemName",
+        "price": 10.9
+      }
+    ],
+    "menu_id": "af273f6c-0702-450c-9d44-34913e248378",
+    "cuisine": "Thai"
+  }
+}
+
+###
+
+POST http://localhost:8000/api/commands/restaurant
+Content-Type: application/json
+
+{
+  "identifier": "3ac06cc7-0b59-436e-8c54-576f3cca01a8",
+  "order_identifier": "4ac06cc7-0b59-436e-8c54-576f3cca01a9",
+  "type": "PlaceOrder",
+  "line_items": [
+    {
+      "menu_item_id": "bf273f6c-0702-450c-9d44-34913e248378",
+      "name": "menuItemName",
+      "quantity": 2,
+      "id": "bf273f6c-0702-450c-9d44-34913e248378"
+    }
+  ]
+}
+
+
+### Order Queries
+
+GET http://localhost:8000/api/queries/order
+Content-Type: application/json
+
+### Restaurant Queries
+
+GET http://localhost:8000/api/queries/restaurant
+Content-Type: application/json

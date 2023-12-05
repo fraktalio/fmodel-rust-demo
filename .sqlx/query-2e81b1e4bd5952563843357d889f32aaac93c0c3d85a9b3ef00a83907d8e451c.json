@@ -1,0 +1,29 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO orders (id, data)\n            VALUES ($1, $2)\n         ON CONFLICT ON CONSTRAINT orders_pkey\n         DO UPDATE SET data = EXCLUDED.data\n            RETURNING *",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 1,
+        "name": "data",
+        "type_info": "Jsonb"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Varchar",
+        "Jsonb"
+      ]
+    },
+    "nullable": [
+      false,
+      true
+    ]
+  },
+  "hash": "2e81b1e4bd5952563843357d889f32aaac93c0c3d85a9b3ef00a83907d8e451c"
+}
