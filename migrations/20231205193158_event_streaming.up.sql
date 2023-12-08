@@ -35,6 +35,9 @@ CREATE TABLE IF NOT EXISTS locks
     FOREIGN KEY ("view") REFERENCES views ("view") ON DELETE CASCADE
 );
 
+CREATE INDEX IF NOT EXISTS lock_index ON locks (view, locked_until, last_offset);
+
+
 -- SIDE EFFECT:  before_update_views_table - automatically bump "updated_at" when modifying a view
 CREATE OR REPLACE FUNCTION "before_update_views_table"() RETURNS trigger AS
 '

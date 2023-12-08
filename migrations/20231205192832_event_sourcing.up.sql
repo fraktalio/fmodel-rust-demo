@@ -38,7 +38,7 @@ CREATE TABLE IF NOT EXISTS events
     FOREIGN KEY ("decider", "event") REFERENCES deciders ("decider", "event")
 );
 
-CREATE INDEX IF NOT EXISTS decider_index ON events ("decider_id", "decider");
+CREATE INDEX IF NOT EXISTS decider_index ON events ("decider_id", "offset");
 
 --      ########################
 --      ##### SIDE EFFECTS #####
