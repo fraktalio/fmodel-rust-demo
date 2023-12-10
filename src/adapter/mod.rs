@@ -1,3 +1,4 @@
+pub mod actor;
 pub mod database;
 pub mod event_stream;
 pub mod publisher;
