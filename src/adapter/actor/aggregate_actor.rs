@@ -46,9 +46,22 @@ impl Id for Command {
 }
 
 /// AggregateActor struct - An actor that handles commands
-struct AggregateActor {
+pub struct AggregateActor {
     restaurant_aggregate: Arc<RestaurantAggregate<'static, RestaurantEventRepository>>,
     order_aggregate: Arc<OrderAggregate<'static, OrderEventRepository>>,
+}
+
+impl AggregateActor {
+    /// Create a new AggregateActor
+    pub fn new(
+        restaurant_aggregate: Arc<RestaurantAggregate<'static, RestaurantEventRepository>>,
+        order_aggregate: Arc<OrderAggregate<'static, OrderEventRepository>>,
+    ) -> Self {
+        AggregateActor {
+            restaurant_aggregate,
+            order_aggregate,
+        }
+    }
 }
 
 impl Actor for AggregateActor {
@@ -78,13 +91,28 @@ impl Handler<Command> for AggregateActor {
 }
 
 /// Actor that implements consistent hashing algorithm. It routes the commands to the target actor based on the hash of the command's key.
-struct ConsistentHashingActor {
+pub struct ConsistentHashingActor {
     actors: CHashMap<usize, Addr<AggregateActor>>,
     num_actors: usize,
 }
 
 impl ConsistentHashingActor {
-    /// Calculate the target actor based on the hash of the command's key
+    /// Create a new ConsistentHashingActor
+    #[allow(dead_code)]
+    pub fn new(
+        num_actors: usize,
+        restaurant_aggregate: Arc<RestaurantAggregate<'static, RestaurantEventRepository>>,
+        order_aggregate: Arc<OrderAggregate<'static, OrderEventRepository>>,
+    ) -> Self {
+        let actors = CHashMap::with_capacity(num_actors);
+        for i in 0..num_actors {
+            let actor_address =
+                AggregateActor::new(restaurant_aggregate.clone(), order_aggregate.clone()).start();
+            actors.insert(i, actor_address);
+        }
+        ConsistentHashingActor { actors, num_actors }
+    }
+    // Calculate the target actor based on the hash of the command's key
     fn calculate_target_actor(&self, key: &str) -> usize {
         // Use simple hash and modulo to calculate the target actor
         key.chars().fold(0, |acc, c| acc + c as usize) % self.num_actors
