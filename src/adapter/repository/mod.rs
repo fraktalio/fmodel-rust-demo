@@ -2,6 +2,7 @@ use crate::adapter::database::entity::NewEventEntity;
 use crate::adapter::database::error::ErrorMessage;
 use uuid::Uuid;
 
+pub mod event_repository;
 pub mod order_event_repository;
 pub mod order_view_state_repository;
 pub mod restaurant_event_repository;

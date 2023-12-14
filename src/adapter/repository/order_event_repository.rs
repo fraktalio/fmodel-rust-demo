@@ -6,7 +6,7 @@ use uuid::Uuid;
 use crate::adapter::database::entity::{EventEntity, NewEventEntity};
 use crate::adapter::database::error::ErrorMessage;
 use crate::adapter::database::queries::{append_event, list_events};
-use crate::domain::api::{OrderCommand, OrderEvent};
+use crate::domain::api::{Identifier, OrderCommand, OrderEvent};
 use crate::Database;
 
 /// OrderEventRepository struct
@@ -28,13 +28,8 @@ impl EventRepository<OrderCommand, OrderEvent, Uuid, ErrorMessage> for OrderEven
         &self,
         command: &OrderCommand,
     ) -> Result<Vec<(OrderEvent, Uuid)>, ErrorMessage> {
-        let command_id = match command {
-            OrderCommand::Create(cmd) => cmd.identifier.to_string(),
-            OrderCommand::MarkAsPrepared(cmd) => cmd.identifier.to_string(),
-        };
-
         // https://doc.rust-lang.org/rust-by-example/error/iter_result.html#fail-the-entire-operation-with-collect
-        list_events(&command_id, &self.database)
+        list_events(&command.identifier(), &self.database)
             .await?
             .into_iter()
             .map(|event_entity| {

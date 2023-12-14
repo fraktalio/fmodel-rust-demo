@@ -6,7 +6,7 @@ use crate::adapter::database::entity::RestaurantEntity;
 use crate::adapter::database::error::ErrorMessage;
 use crate::adapter::database::queries::{get_all_restaurants, get_restaurant, upsert_restaurant};
 use crate::application::api::RestaurantQueryHandler;
-use crate::domain::api::RestaurantEvent;
+use crate::domain::api::{Identifier, RestaurantEvent};
 use crate::domain::restaurant_view::RestaurantViewState;
 use crate::Database;
 
@@ -52,15 +52,7 @@ impl ViewStateRepository<RestaurantEvent, Option<RestaurantViewState>, ErrorMess
         &self,
         event: &RestaurantEvent,
     ) -> Result<Option<Option<RestaurantViewState>>, ErrorMessage> {
-        let event_id = match event {
-            RestaurantEvent::Created(evt) => evt.identifier.to_string(),
-            RestaurantEvent::NotCreated(evt) => evt.identifier.to_string(),
-            RestaurantEvent::MenuChanged(evt) => evt.identifier.to_string(),
-            RestaurantEvent::MenuNotChanged(evt) => evt.identifier.to_string(),
-            RestaurantEvent::OrderPlaced(evt) => evt.identifier.to_string(),
-            RestaurantEvent::OrderNotPlaced(evt) => evt.identifier.to_string(),
-        };
-        get_restaurant(&event_id, &self.database)
+        get_restaurant(&event.identifier(), &self.database)
             .await?
             .map(|entity| entity.to_restaurant())
             .transpose()

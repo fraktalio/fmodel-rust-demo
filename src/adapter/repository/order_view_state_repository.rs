@@ -6,7 +6,7 @@ use crate::adapter::database::entity::OrderEntity;
 use crate::adapter::database::error::ErrorMessage;
 use crate::adapter::database::queries::{get_all_orders, get_order, upsert_order};
 use crate::application::api::OrderQueryHandler;
-use crate::domain::api::OrderEvent;
+use crate::domain::api::{Identifier, OrderEvent};
 use crate::domain::order_view::OrderViewState;
 use crate::Database;
 
@@ -52,13 +52,7 @@ impl ViewStateRepository<OrderEvent, Option<OrderViewState>, ErrorMessage>
         &self,
         event: &OrderEvent,
     ) -> Result<Option<Option<OrderViewState>>, ErrorMessage> {
-        let event_id = match event {
-            OrderEvent::Created(evt) => evt.identifier.to_string(),
-            OrderEvent::NotCreated(evt) => evt.identifier.to_string(),
-            OrderEvent::Prepared(evt) => evt.identifier.to_string(),
-            OrderEvent::NotPrepared(evt) => evt.identifier.to_string(),
-        };
-        get_order(&event_id, &self.database)
+        get_order(&event.identifier(), &self.database)
             .await?
             .map(|entity| entity.to_order())
             .transpose()

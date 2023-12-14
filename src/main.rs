@@ -13,6 +13,7 @@ use actix_web::{http::header, web, App, HttpServer};
 use dotenv::dotenv;
 use env_logger::{init_from_env, Env};
 use fmodel_rust::aggregate::EventSourcedAggregate;
+use fmodel_rust::decider_combined::combine;
 use fmodel_rust::materialized_view::MaterializedView;
 use fmodel_rust::saga_manager::SagaManager;
 use log::{debug, error, info};
@@ -21,6 +22,7 @@ use sqlx::{migrate, postgres::PgPoolOptions, Pool, Postgres};
 use crate::adapter::event_stream::saga_stream::stream_events_to_saga;
 use crate::adapter::event_stream::view_stream::stream_events_to_view;
 use crate::adapter::publisher::order_action_publisher::OrderActionPublisher;
+use crate::adapter::repository::event_repository::AggregateEventRepository;
 use crate::adapter::repository::order_event_repository::OrderEventRepository;
 use crate::adapter::repository::order_view_state_repository::OrderViewStateRepository;
 use crate::adapter::repository::restaurant_event_repository::RestaurantEventRepository;
@@ -85,15 +87,11 @@ async fn main() -> std::io::Result<()> {
         }
     }
 
+    // ##### COMMAND SIDE - create an aggregate per decider - distributed scenario #####
     // Create the order repository - command side
     let order_event_repository = OrderEventRepository::new(Database { db: pool.clone() });
-    // Create the order query handler - query side
-    let order_query_handler = OrderViewStateRepository::new(Database { db: pool.clone() });
     // Create the restaurant repository - command side
     let restaurant_event_repository = RestaurantEventRepository::new(Database { db: pool.clone() });
-    // Create the restaurant query handler -
-    let restaurant_query_handler =
-        RestaurantViewStateRepository::new(Database { db: pool.clone() });
     // Create the restaurant aggregate - command side
     let restaurant_aggregate = Arc::new(EventSourcedAggregate::new(
         restaurant_event_repository,
@@ -105,6 +103,19 @@ async fn main() -> std::io::Result<()> {
         order_decider(),
     ));
 
+    // ##### COMMAND SIDE - create one aggregate that combines all deciders - monolithic scenario #####
+    // Create general event repository, for all event types - command side
+    let event_repository = AggregateEventRepository::new(Database { db: pool.clone() });
+    // Combined aggregate - command side
+    let _combined_aggregate = Arc::new(EventSourcedAggregate::new(
+        event_repository,
+        combine(restaurant_decider(), order_decider()),
+    ));
+
+    // ###### QUERY SIDE ######
+    // Create the restaurant query handler -
+    let restaurant_query_handler =
+        RestaurantViewStateRepository::new(Database { db: pool.clone() });
     // Create the restaurant view state repository - query side
     let restaurant_view_state_repository =
         RestaurantViewStateRepository::new(Database { db: pool.clone() });
@@ -113,6 +124,8 @@ async fn main() -> std::io::Result<()> {
         restaurant_view_state_repository,
         restaurant_view(),
     ));
+    // Create the order query handler - query side
+    let order_query_handler = OrderViewStateRepository::new(Database { db: pool.clone() });
     // Create the order view state repository - query side
     let order_view_state_repository = OrderViewStateRepository::new(Database { db: pool.clone() });
     // Create the order materialized view - query side - handles the events from the event store and projects them into the denormalized state

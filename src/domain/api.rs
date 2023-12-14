@@ -1,3 +1,4 @@
+use fmodel_rust::Sum;
 use serde::{Deserialize, Serialize};
 use std::fmt;
 use uuid::Uuid;
@@ -317,4 +318,75 @@ pub enum OrderEvent {
     NotCreated(OrderNotCreated),
     Prepared(OrderPrepared),
     NotPrepared(OrderNotPrepared),
+}
+
+/// All possible command variants that could be sent
+pub type Command = Sum<RestaurantCommand, OrderCommand>;
+
+/// All possible event variants that could be used
+pub type Event = Sum<RestaurantEvent, OrderEvent>;
+
+pub trait Identifier {
+    fn identifier(&self) -> String;
+}
+
+impl Identifier for RestaurantCommand {
+    fn identifier(&self) -> String {
+        match self {
+            RestaurantCommand::CreateRestaurant(command) => command.identifier.to_string(),
+            RestaurantCommand::ChangeMenu(command) => command.identifier.to_string(),
+            RestaurantCommand::PlaceOrder(command) => command.identifier.to_string(),
+        }
+    }
+}
+
+impl Identifier for OrderCommand {
+    fn identifier(&self) -> String {
+        match self {
+            OrderCommand::Create(command) => command.identifier.to_string(),
+            OrderCommand::MarkAsPrepared(command) => command.identifier.to_string(),
+        }
+    }
+}
+
+impl Identifier for Command {
+    fn identifier(&self) -> String {
+        match self {
+            Command::First(command) => command.identifier(),
+            Command::Second(command) => command.identifier(),
+        }
+    }
+}
+
+impl Identifier for RestaurantEvent {
+    fn identifier(&self) -> String {
+        match self {
+            RestaurantEvent::Created(event) => event.identifier.to_string(),
+            RestaurantEvent::NotCreated(event) => event.identifier.to_string(),
+            RestaurantEvent::MenuChanged(event) => event.identifier.to_string(),
+            RestaurantEvent::MenuNotChanged(event) => event.identifier.to_string(),
+            RestaurantEvent::OrderPlaced(event) => event.identifier.to_string(),
+            RestaurantEvent::OrderNotPlaced(event) => event.identifier.to_string(),
+        }
+    }
+}
+
+impl Identifier for OrderEvent {
+    fn identifier(&self) -> String {
+        match self {
+            OrderEvent::Created(event) => event.identifier.to_string(),
+            OrderEvent::NotCreated(event) => event.identifier.to_string(),
+            OrderEvent::Prepared(event) => event.identifier.to_string(),
+            OrderEvent::NotPrepared(event) => event.identifier.to_string(),
+        }
+    }
+}
+
+impl Identifier for Event {
+    fn identifier(&self) -> String {
+        match self {
+            Event::First(event) => event.identifier(),
+            Event::Second(event) => event.identifier(),
+        }
+    }
 }
