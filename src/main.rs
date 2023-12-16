@@ -13,7 +13,6 @@ use actix_web::{http::header, web, App, HttpServer};
 use dotenv::dotenv;
 use env_logger::{init_from_env, Env};
 use fmodel_rust::aggregate::EventSourcedAggregate;
-use fmodel_rust::decider_combined::combine;
 use fmodel_rust::materialized_view::MaterializedView;
 use fmodel_rust::saga_manager::SagaManager;
 use log::{debug, error, info};
@@ -109,7 +108,7 @@ async fn main() -> std::io::Result<()> {
     // Combined aggregate - command side
     let _combined_aggregate = Arc::new(EventSourcedAggregate::new(
         event_repository,
-        combine(restaurant_decider(), order_decider()),
+        restaurant_decider().combine(order_decider()),
     ));
 
     // ###### QUERY SIDE ######
