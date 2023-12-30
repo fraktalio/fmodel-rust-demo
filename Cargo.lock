@@ -683,11 +683,10 @@ dependencies = [
 
 [[package]]
 name = "fmodel-rust"
-version = "0.5.0"
+version = "0.7.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6ef1724e62da57b98b3b8d5fa30135de48a0c149a43434df617b57ec0d452805"
+checksum = "d283d663418830a965e432be915b0a106f1282215e4aeeb677d52b4ceacabb7f"
 dependencies = [
- "async-trait",
  "serde",
 ]
 
