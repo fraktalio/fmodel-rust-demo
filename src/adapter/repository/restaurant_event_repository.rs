@@ -1,5 +1,4 @@
 use crate::adapter::repository::ToNewEventEntity;
-use async_trait::async_trait;
 use fmodel_rust::aggregate::EventRepository;
 use uuid::Uuid;
 
@@ -22,7 +21,6 @@ impl RestaurantEventRepository {
 }
 
 /// RestaurantEventRepository - implementation of Fmodel EventRepository for RestaurantCommand, RestaurantEvent, Uuid, ErrorMessage
-#[async_trait]
 impl EventRepository<RestaurantCommand, RestaurantEvent, Uuid, ErrorMessage>
     for RestaurantEventRepository
 {

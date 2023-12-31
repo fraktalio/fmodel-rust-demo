@@ -1,5 +1,3 @@
-use async_trait::async_trait;
-
 use fmodel_rust::materialized_view::ViewStateRepository;
 
 use crate::adapter::database::entity::RestaurantEntity;
@@ -24,7 +22,6 @@ impl RestaurantViewStateRepository {
 }
 
 /// Implementation of RestaurantQueryHandler for RestaurantViewStateRepository
-#[async_trait]
 impl RestaurantQueryHandler for RestaurantViewStateRepository {
     /// Get the Restaurant view state by `id`
     async fn get_restaurant(&self, id: &str) -> Result<Option<RestaurantViewState>, ErrorMessage> {
@@ -44,7 +41,6 @@ impl RestaurantQueryHandler for RestaurantViewStateRepository {
 }
 
 /// RestaurantViewStateRepository - implementation of Fmodel ViewStateRepository for RestaurantEvent, RestaurantViewState, ErrorMessage
-#[async_trait]
 impl ViewStateRepository<RestaurantEvent, Option<RestaurantViewState>, ErrorMessage>
     for RestaurantViewStateRepository
 {

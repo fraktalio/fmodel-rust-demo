@@ -1,4 +1,3 @@
-use async_trait::async_trait;
 use fmodel_rust::aggregate::{EventRepository, EventSourcedAggregate};
 use fmodel_rust::decider::Decider;
 use fmodel_rust::materialized_view::MaterializedView;
@@ -38,7 +37,6 @@ pub type RestaurantAggregate<'a, R> = EventSourcedAggregate<
 >;
 
 /// RestaurantQueryHandler trait - Query side of CQRS pattern
-#[async_trait]
 pub trait RestaurantQueryHandler {
     /// Get the Restaurant view state by `id`
     async fn get_restaurant(&self, id: &str) -> Result<Option<RestaurantViewState>, ErrorMessage>;
@@ -47,7 +45,6 @@ pub trait RestaurantQueryHandler {
 }
 
 /// OrderQueryHandler trait - Query side of CQRS pattern
-#[async_trait]
 pub trait OrderQueryHandler {
     /// Get the Order view state by `id`
     async fn get_order(&self, id: &str) -> Result<Option<OrderViewState>, ErrorMessage>;

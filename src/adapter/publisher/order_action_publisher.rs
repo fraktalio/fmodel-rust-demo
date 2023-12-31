@@ -2,7 +2,6 @@ use crate::adapter::database::error::ErrorMessage;
 use crate::adapter::repository::order_event_repository::OrderEventRepository;
 use crate::application::api::OrderAggregate;
 use crate::domain::api::OrderCommand;
-use async_trait::async_trait;
 use fmodel_rust::saga_manager::ActionPublisher;
 use std::sync::Arc;
 
@@ -12,7 +11,6 @@ pub struct OrderActionPublisher<'a> {
 }
 
 /// Fmodel action publisher implementation fot the OrderActionPublisher
-#[async_trait]
 impl ActionPublisher<OrderCommand, ErrorMessage> for OrderActionPublisher<'_> {
     async fn publish(&self, commands: &[OrderCommand]) -> Result<Vec<OrderCommand>, ErrorMessage> {
         for command in commands {
