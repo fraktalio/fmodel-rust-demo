@@ -1,5 +1,4 @@
 use crate::adapter::repository::ToNewEventEntity;
-use async_trait::async_trait;
 use fmodel_rust::aggregate::EventRepository;
 use uuid::Uuid;
 
@@ -22,7 +21,6 @@ impl AggregateEventRepository {
 }
 
 /// EventRepository - implementation of Fmodel EventRepository for Command, Event, Uuid, ErrorMessage
-#[async_trait]
 impl EventRepository<Command, Event, Uuid, ErrorMessage> for AggregateEventRepository {
     async fn fetch_events(&self, command: &Command) -> Result<Vec<(Event, Uuid)>, ErrorMessage> {
         // https://doc.rust-lang.org/rust-by-example/error/iter_result.html#fail-the-entire-operation-with-collect

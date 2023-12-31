@@ -1,5 +1,3 @@
-use async_trait::async_trait;
-
 use fmodel_rust::materialized_view::ViewStateRepository;
 
 use crate::adapter::database::entity::OrderEntity;
@@ -24,7 +22,6 @@ impl OrderViewStateRepository {
 }
 
 /// Implementation of OrderQueryHandler for OrderViewStateRepository
-#[async_trait]
 impl OrderQueryHandler for OrderViewStateRepository {
     /// Get the Order view state by `id`
     async fn get_order(&self, id: &str) -> Result<Option<OrderViewState>, ErrorMessage> {
@@ -44,7 +41,6 @@ impl OrderQueryHandler for OrderViewStateRepository {
 }
 
 /// OrderViewStateRepository - implementation of Fmodel ViewStateRepository for OrderEvent, OrderViewState, ErrorMessage
-#[async_trait]
 impl ViewStateRepository<OrderEvent, Option<OrderViewState>, ErrorMessage>
     for OrderViewStateRepository
 {
