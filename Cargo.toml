@@ -7,7 +7,7 @@ authors = ["Ivan Dugalic <ivan.dugalic@fraktalio.com>"]
 
 [dependencies]
 fmodel-rust = "0.7.0"
-actix-cors = "0.6.5"
+actix-cors = "0.7.0"
 actix-web = "4.4.1"
 actix-rt = "2.9.0"
 serde = {version = "1.0.195", features = ["derive"]}
