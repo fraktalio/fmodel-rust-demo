@@ -39,6 +39,7 @@ pub type RestaurantAggregate<'a, R> = EventSourcedAggregate<
 /// RestaurantQueryHandler trait - Query side of CQRS pattern
 pub trait RestaurantQueryHandler {
     /// Get the Restaurant view state by `id`
+    #[allow(dead_code)]
     async fn get_restaurant(&self, id: &str) -> Result<Option<RestaurantViewState>, ErrorMessage>;
     /// Get all the Restaurant view states
     async fn get_all_restaurants(&self) -> Result<Vec<RestaurantViewState>, ErrorMessage>;
@@ -47,6 +48,7 @@ pub trait RestaurantQueryHandler {
 /// OrderQueryHandler trait - Query side of CQRS pattern
 pub trait OrderQueryHandler {
     /// Get the Order view state by `id`
+    #[allow(dead_code)]
     async fn get_order(&self, id: &str) -> Result<Option<OrderViewState>, ErrorMessage>;
     /// Get all the Order view states
     async fn get_all_orders(&self) -> Result<Vec<OrderViewState>, ErrorMessage>;
