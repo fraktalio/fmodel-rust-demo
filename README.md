@@ -58,7 +58,7 @@ sourcing and event streaming.
 
 ## Run the database
 ```shell
-docker-compose up -d
+docker compose up -d
 ```
 
 ## Run the Application
@@ -69,7 +69,7 @@ cargo run
 
 ## Shutdown the database:
 ```shell
-docker-compose down -v
+docker compose down -v
 ```
 
 ## Migration with Offline Mode is Enabled by Default
