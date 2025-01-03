@@ -92,7 +92,6 @@ pub async fn stream_events_to_view(
             Ok(())
         }
         Err(error) => {
-            // Handle the error
             error!("Error: {}", error.message);
             Err(ErrorMessage {
                 message: error.message,

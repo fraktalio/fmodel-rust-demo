@@ -61,7 +61,6 @@ pub async fn stream_events_to_saga(
             Ok(())
         }
         Err(error) => {
-            // Handle the error, optionally break the loop based on the error
             error!("Error: {}", error.message);
             Err(ErrorMessage {
                 message: error.message,
