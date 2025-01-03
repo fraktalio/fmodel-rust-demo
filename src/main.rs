@@ -7,17 +7,6 @@ use std::process::exit;
 use std::sync::Arc;
 use std::time::Duration;
 
-use actix_cors::Cors;
-use actix_web::middleware::Logger;
-use actix_web::{http::header, web, App, HttpServer};
-use dotenv::dotenv;
-use env_logger::{init_from_env, Env};
-use fmodel_rust::aggregate::EventSourcedAggregate;
-use fmodel_rust::materialized_view::MaterializedView;
-use fmodel_rust::saga_manager::SagaManager;
-use log::{debug, error, info};
-use sqlx::{migrate, postgres::PgPoolOptions, Pool, Postgres};
-
 use crate::adapter::event_stream::saga_stream::stream_events_to_saga;
 use crate::adapter::event_stream::view_stream::stream_events_to_view;
 use crate::adapter::publisher::order_action_publisher::OrderActionPublisher;
@@ -33,6 +22,18 @@ use crate::domain::order_saga::order_saga;
 use crate::domain::order_view::order_view;
 use crate::domain::restaurant_decider::restaurant_decider;
 use crate::domain::restaurant_view::restaurant_view;
+use actix_cors::Cors;
+use actix_web::middleware::Logger;
+use actix_web::{http::header, web, App, HttpServer};
+use dotenv::dotenv;
+use env_logger::{init_from_env, Env};
+use fmodel_rust::aggregate::EventSourcedAggregate;
+use fmodel_rust::materialized_view::MaterializedView;
+use fmodel_rust::saga_manager::SagaManager;
+use log::{debug, error, info};
+use sqlx::{migrate, postgres::PgPoolOptions, Pool, Postgres};
+use tokio::time::sleep;
+use tokio_util::sync::CancellationToken;
 
 mod adapter;
 mod application;
@@ -141,7 +142,11 @@ async fn main() -> std::io::Result<()> {
     let order_saga_manager = Arc::new(SagaManager::new(order_action_publisher, order_saga()));
 
     // Start a background task for all the event handling and processing
-    actix_web::rt::spawn(async move {
+    // 1. stop signal for canceling background task
+    let background_task_cancellation = CancellationToken::new();
+    let background_task_cancellation_clone = background_task_cancellation.clone();
+    // 2. Spawn the background task
+    let background_task = actix_web::rt::spawn(async move {
         let db = Database { db: pool.clone() };
         loop {
             stream_events_to_view(
@@ -152,8 +157,17 @@ async fn main() -> std::io::Result<()> {
             .await;
             stream_events_to_saga(order_saga_manager.clone(), &db).await;
 
-            debug!("### Waiting for 1 second ###");
-            actix_rt::time::sleep(Duration::from_millis(1000)).await;
+            tokio::select! {
+                _ = sleep(Duration::from_secs(1)) => {
+                    debug!("### Waiting for 1 second ###");
+                    continue;
+                }
+
+                _ = background_task_cancellation_clone.cancelled() => {
+                    info!("### Gracefully shutting event handler ###");
+                    break;
+                }
+            };
         }
     });
 
@@ -184,5 +198,12 @@ async fn main() -> std::io::Result<()> {
     })
     .bind(("127.0.0.1", 8000))?
     .run()
-    .await
+    .await?;
+
+    background_task_cancellation.cancel();
+
+    background_task.await?;
+    info!("### Application gracefully shut down ###");
+
+    Ok(())
 }
