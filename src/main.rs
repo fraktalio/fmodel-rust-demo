@@ -149,13 +149,27 @@ async fn main() -> std::io::Result<()> {
     let background_task = actix_web::rt::spawn(async move {
         let db = Database { db: pool.clone() };
         loop {
-            stream_events_to_view(
+            match stream_events_to_view(
                 restaurant_materialized_view.clone(),
                 order_materialized_view.clone(),
                 &db,
             )
-            .await;
-            stream_events_to_saga(order_saga_manager.clone(), &db).await;
+            .await
+            {
+                Ok(_) => {}
+                Err(error) => {
+                    error!("###  View Stream closed with error: {} ###", error.message);
+                    break;
+                }
+            }
+
+            match stream_events_to_saga(order_saga_manager.clone(), &db).await {
+                Ok(_) => {}
+                Err(error) => {
+                    error!("###  Saga Stream closed with error: {} ###", error.message);
+                    break;
+                }
+            }
 
             tokio::select! {
                 _ = sleep(Duration::from_secs(1)) => {

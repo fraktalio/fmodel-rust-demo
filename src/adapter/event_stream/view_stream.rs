@@ -1,7 +1,6 @@
 use std::sync::Arc;
 
-use log::{debug, error, warn};
-
+use crate::adapter::database::error::ErrorMessage;
 use crate::adapter::database::queries::{ack_event, nack_event, stream_events};
 use crate::adapter::repository::order_event_repository::ToOrderEvent;
 use crate::adapter::repository::order_view_state_repository::OrderViewStateRepository;
@@ -9,6 +8,7 @@ use crate::adapter::repository::restaurant_event_repository::ToRestaurantEvent;
 use crate::adapter::repository::restaurant_view_state_repository::RestaurantViewStateRepository;
 use crate::application::api::{OrderMaterializedView, RestaurantMaterializedView};
 use crate::Database;
+use log::{debug, error, warn};
 
 /// Stream events to the materialized view - Simple implementation
 pub async fn stream_events_to_view(
@@ -17,7 +17,7 @@ pub async fn stream_events_to_view(
     >,
     order_materialized_view: Arc<OrderMaterializedView<'_, OrderViewStateRepository>>,
     db: &Database,
-) {
+) -> Result<(), ErrorMessage> {
     // Stream events from the `event` table to the materialized view of name "view"
     match stream_events(&"view".to_string(), db).await {
         Ok(Some(event_entity)) => {
@@ -25,7 +25,7 @@ pub async fn stream_events_to_view(
             match event_entity.decider.as_str() {
                 "Restaurant" => {
                     match restaurant_materialized_view
-                        .handle(&event_entity.to_restaurant_event().unwrap())
+                        .handle(&event_entity.to_restaurant_event()?)
                         .await
                     {
                         Ok(_) => {
@@ -37,7 +37,7 @@ pub async fn stream_events_to_view(
                                 db,
                             )
                             .await
-                            .unwrap();
+                            .map(drop)
                         }
                         Err(error) => {
                             error!(
@@ -46,13 +46,13 @@ pub async fn stream_events_to_view(
                             );
                             nack_event(&"view".to_string(), &event_entity.decider_id, db)
                                 .await
-                                .unwrap();
+                                .map(drop)
                         }
                     }
                 }
                 "Order" => {
                     match order_materialized_view
-                        .handle(&event_entity.to_order_event().unwrap())
+                        .handle(&event_entity.to_order_event()?)
                         .await
                     {
                         Ok(_) => {
@@ -64,13 +64,13 @@ pub async fn stream_events_to_view(
                                 db,
                             )
                             .await
-                            .unwrap();
+                            .map(drop)
                         }
                         Err(error) => {
                             error!("Order materialized view update failed: {}", error.message);
                             nack_event(&"view".to_string(), &event_entity.decider_id, db)
                                 .await
-                                .unwrap();
+                                .map(drop)
                         }
                     }
                 }
@@ -83,17 +83,20 @@ pub async fn stream_events_to_view(
                         db,
                     )
                     .await
-                    .unwrap();
+                    .map(drop)
                 }
             }
         }
         Ok(None) => {
             debug!("No events to process, continue with the next iteration");
+            Ok(())
         }
         Err(error) => {
             // Handle the error
             error!("Error: {}", error.message);
-            panic!("Error: {}", error.message)
+            Err(ErrorMessage {
+                message: error.message,
+            })
         }
     }
 }
