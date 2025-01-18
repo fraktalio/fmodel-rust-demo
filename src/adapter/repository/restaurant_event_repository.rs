@@ -4,7 +4,7 @@ use uuid::Uuid;
 
 use crate::adapter::database::entity::{EventEntity, NewEventEntity};
 use crate::adapter::database::error::ErrorMessage;
-use crate::adapter::database::queries::{append_event, list_events};
+use crate::adapter::database::queries::{append_event, get_latest_event, list_events};
 use crate::domain::api::{Identifier, RestaurantCommand, RestaurantEvent};
 use crate::Database;
 
@@ -43,9 +43,9 @@ impl EventRepository<RestaurantCommand, RestaurantEvent, Uuid, ErrorMessage>
     async fn save(
         &self,
         events: &[RestaurantEvent],
-        latest_version: &Option<Uuid>,
     ) -> Result<Vec<(RestaurantEvent, Uuid)>, ErrorMessage> {
-        let mut latest_version = latest_version.to_owned();
+        //TODO implement this better by going throuh and calculating versions per ID/Stream
+        let mut latest_version = self.version_provider(events.first().unwrap()).await?;
         let mut result = Vec::new();
 
         for event in events {
@@ -56,6 +56,14 @@ impl EventRepository<RestaurantCommand, RestaurantEvent, Uuid, ErrorMessage>
         }
 
         Ok(result)
+    }
+    async fn version_provider(
+        &self,
+        event: &RestaurantEvent,
+    ) -> Result<Option<Uuid>, ErrorMessage> {
+        get_latest_event(&event.identifier(), &self.database)
+            .await
+            .map(|event_entity| Some(event_entity.event_id))
     }
 }
 
