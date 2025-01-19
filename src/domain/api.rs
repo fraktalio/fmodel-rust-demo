@@ -326,6 +326,11 @@ pub type Command = Sum<RestaurantCommand, OrderCommand>;
 /// All possible event variants that could be used
 pub type Event = Sum<RestaurantEvent, OrderEvent>;
 
+// ########################################################
+// ####################     TRAITS      ###################
+// ########################################################
+
+/// ###### Trait to get the identifier of a message #######
 pub trait Identifier {
     fn identifier(&self) -> String;
 }
@@ -387,6 +392,82 @@ impl Identifier for Event {
         match self {
             Event::First(event) => event.identifier(),
             Event::Second(event) => event.identifier(),
+        }
+    }
+}
+
+/// ###### Trait to get the decider name/type of a message #######
+pub trait DeciderName {
+    fn decider_name(&self) -> String;
+}
+
+impl DeciderName for RestaurantEvent {
+    fn decider_name(&self) -> String {
+        match self {
+            RestaurantEvent::Created(_) => "Restaurant".to_string(),
+            RestaurantEvent::NotCreated(_) => "Restaurant".to_string(),
+            RestaurantEvent::MenuChanged(_) => "Restaurant".to_string(),
+            RestaurantEvent::MenuNotChanged(_) => "Restaurant".to_string(),
+            RestaurantEvent::OrderPlaced(_) => "Restaurant".to_string(),
+            RestaurantEvent::OrderNotPlaced(_) => "Restaurant".to_string(),
+        }
+    }
+}
+
+impl DeciderName for OrderEvent {
+    fn decider_name(&self) -> String {
+        match self {
+            OrderEvent::Created(_) => "Order".to_string(),
+            OrderEvent::NotCreated(_) => "Order".to_string(),
+            OrderEvent::Prepared(_) => "Order".to_string(),
+            OrderEvent::NotPrepared(_) => "Order".to_string(),
+        }
+    }
+}
+
+impl DeciderName for Event {
+    fn decider_name(&self) -> String {
+        match self {
+            Event::First(event) => event.decider_name(),
+            Event::Second(event) => event.decider_name(),
+        }
+    }
+}
+
+/// ###### Trait to get the decider name/type of an event #######
+pub trait EventName {
+    fn event_name(&self) -> String;
+}
+
+impl EventName for RestaurantEvent {
+    fn event_name(&self) -> String {
+        match self {
+            RestaurantEvent::Created(_) => "RestaurantCreated".to_string(),
+            RestaurantEvent::NotCreated(_) => "RestaurantNotCreated".to_string(),
+            RestaurantEvent::MenuChanged(_) => "RestaurantMenuChanged".to_string(),
+            RestaurantEvent::MenuNotChanged(_) => "RestaurantMenuNotChanged".to_string(),
+            RestaurantEvent::OrderPlaced(_) => "OrderPlaced".to_string(),
+            RestaurantEvent::OrderNotPlaced(_) => "OrderNotPlaced".to_string(),
+        }
+    }
+}
+
+impl EventName for OrderEvent {
+    fn event_name(&self) -> String {
+        match self {
+            OrderEvent::Created(_) => "OrderCreated".to_string(),
+            OrderEvent::NotCreated(_) => "OrderNotCreated".to_string(),
+            OrderEvent::Prepared(_) => "OrderPrepared".to_string(),
+            OrderEvent::NotPrepared(_) => "OrderNotPrepared".to_string(),
+        }
+    }
+}
+
+impl EventName for Event {
+    fn event_name(&self) -> String {
+        match self {
+            Event::First(event) => event.event_name(),
+            Event::Second(event) => event.event_name(),
         }
     }
 }

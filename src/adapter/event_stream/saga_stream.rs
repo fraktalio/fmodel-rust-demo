@@ -3,7 +3,7 @@ use std::sync::Arc;
 use crate::adapter::database::error::ErrorMessage;
 use crate::adapter::database::queries::{ack_event, nack_event, stream_events};
 use crate::adapter::publisher::order_action_publisher::OrderActionPublisher;
-use crate::adapter::repository::restaurant_event_repository::ToRestaurantEvent;
+use crate::adapter::repository::event_repository::ToEvent;
 use crate::application::api::OrderSagaManager;
 use crate::Database;
 use log::{debug, error, warn};
@@ -19,30 +19,25 @@ pub async fn stream_events_to_saga(
         Ok(Some(event_entity)) => {
             debug!("Processing Event in Saga: {:?}", event_entity);
             match event_entity.decider.as_str() {
-                "Restaurant" => {
-                    match order_saga_manager
-                        .handle(&event_entity.to_restaurant_event()?)
+                "Restaurant" => match order_saga_manager.handle(&event_entity.to_event()?).await {
+                    Ok(_) => {
+                        debug!("Order Saga executed successfully");
+                        ack_event(
+                            &event_entity.offset,
+                            &"saga".to_string(),
+                            &event_entity.decider_id,
+                            db,
+                        )
                         .await
-                    {
-                        Ok(_) => {
-                            debug!("Order Saga executed successfully");
-                            ack_event(
-                                &event_entity.offset,
-                                &"saga".to_string(),
-                                &event_entity.decider_id,
-                                db,
-                            )
+                        .map(drop)
+                    }
+                    Err(error) => {
+                        error!("Order Saga failed: {}", error.message);
+                        nack_event(&"saga".to_string(), &event_entity.decider_id, db)
                             .await
                             .map(drop)
-                        }
-                        Err(error) => {
-                            error!("Order Saga failed: {}", error.message);
-                            nack_event(&"saga".to_string(), &event_entity.decider_id, db)
-                                .await
-                                .map(drop)
-                        }
                     }
-                }
+                },
                 _ => {
                     warn!("Unknown event type: {}", event_entity.event);
                     ack_event(

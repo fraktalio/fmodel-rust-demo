@@ -11,9 +11,7 @@ use crate::adapter::event_stream::saga_stream::stream_events_to_saga;
 use crate::adapter::event_stream::view_stream::stream_events_to_view;
 use crate::adapter::publisher::order_action_publisher::OrderActionPublisher;
 use crate::adapter::repository::event_repository::AggregateEventRepository;
-use crate::adapter::repository::order_event_repository::OrderEventRepository;
 use crate::adapter::repository::order_view_state_repository::OrderViewStateRepository;
-use crate::adapter::repository::restaurant_event_repository::RestaurantEventRepository;
 use crate::adapter::repository::restaurant_view_state_repository::RestaurantViewStateRepository;
 use crate::adapter::web::handler;
 use crate::application::api::Application;
@@ -90,9 +88,9 @@ async fn main() -> std::io::Result<()> {
 
     // ##### COMMAND SIDE - create an aggregate per decider - distributed scenario #####
     // Create the order repository - command side
-    let order_event_repository = OrderEventRepository::new(Database { db: pool.clone() });
+    let order_event_repository = AggregateEventRepository::new(Database { db: pool.clone() });
     // Create the restaurant repository - command side
-    let restaurant_event_repository = RestaurantEventRepository::new(Database { db: pool.clone() });
+    let restaurant_event_repository = AggregateEventRepository::new(Database { db: pool.clone() });
     // Create the restaurant aggregate - command side
     let restaurant_aggregate = Arc::new(EventSourcedAggregate::new(
         restaurant_event_repository,
