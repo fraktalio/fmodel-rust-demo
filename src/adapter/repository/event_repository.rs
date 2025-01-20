@@ -1,5 +1,4 @@
 use fmodel_rust::aggregate::EventRepository;
-use log::{info, warn};
 use uuid::Uuid;
 
 use crate::adapter::database::entity::{EventEntity, NewEventEntity};
