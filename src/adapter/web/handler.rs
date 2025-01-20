@@ -1,6 +1,5 @@
-use crate::adapter::repository::order_event_repository::OrderEventRepository;
+use crate::adapter::repository::event_repository::AggregateEventRepository;
 use crate::adapter::repository::order_view_state_repository::OrderViewStateRepository;
-use crate::adapter::repository::restaurant_event_repository::RestaurantEventRepository;
 use crate::adapter::repository::restaurant_view_state_repository::RestaurantViewStateRepository;
 use crate::application::api::{Application, OrderQueryHandler, RestaurantQueryHandler};
 use crate::domain::api::{OrderCommand, RestaurantCommand};
@@ -12,8 +11,8 @@ async fn health_checker_handler(
     _application: web::Data<
         Application<
             '_,
-            OrderEventRepository,
-            RestaurantEventRepository,
+            AggregateEventRepository,
+            AggregateEventRepository,
             OrderViewStateRepository,
             RestaurantViewStateRepository,
         >,
@@ -30,8 +29,8 @@ async fn order_command_handler(
     application: web::Data<
         Application<
             '_,
-            OrderEventRepository,
-            RestaurantEventRepository,
+            AggregateEventRepository,
+            AggregateEventRepository,
             OrderViewStateRepository,
             RestaurantViewStateRepository,
         >,
@@ -53,8 +52,8 @@ async fn get_all_orders_handler(
     application: web::Data<
         Application<
             '_,
-            OrderEventRepository,
-            RestaurantEventRepository,
+            AggregateEventRepository,
+            AggregateEventRepository,
             OrderViewStateRepository,
             RestaurantViewStateRepository,
         >,
@@ -74,8 +73,8 @@ async fn restaurant_command_handler(
     application: web::Data<
         Application<
             '_,
-            OrderEventRepository,
-            RestaurantEventRepository,
+            AggregateEventRepository,
+            AggregateEventRepository,
             OrderViewStateRepository,
             RestaurantViewStateRepository,
         >,
@@ -97,8 +96,8 @@ async fn get_all_restaurants_handler(
     application: web::Data<
         Application<
             '_,
-            OrderEventRepository,
-            RestaurantEventRepository,
+            AggregateEventRepository,
+            AggregateEventRepository,
             OrderViewStateRepository,
             RestaurantViewStateRepository,
         >,

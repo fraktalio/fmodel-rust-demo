@@ -1,5 +1,5 @@
 use crate::adapter::database::error::ErrorMessage;
-use crate::adapter::repository::order_event_repository::OrderEventRepository;
+use crate::adapter::repository::event_repository::AggregateEventRepository;
 use crate::application::api::OrderAggregate;
 use crate::domain::api::OrderCommand;
 use fmodel_rust::saga_manager::ActionPublisher;
@@ -7,7 +7,7 @@ use std::sync::Arc;
 
 /// Order action publisher - used by the Saga Manager to publish actions/commands
 pub struct OrderActionPublisher<'a> {
-    pub order_aggregate: Arc<OrderAggregate<'a, OrderEventRepository>>,
+    pub order_aggregate: Arc<OrderAggregate<'a, AggregateEventRepository>>,
 }
 
 /// Fmodel action publisher implementation fot the OrderActionPublisher

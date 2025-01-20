@@ -56,13 +56,13 @@ pub async fn list_events(
 pub async fn get_latest_event(
     decider_id: &String,
     app: &Database,
-) -> Result<EventEntity, ErrorMessage> {
+) -> Result<Option<EventEntity>, ErrorMessage> {
     sqlx::query_as!(
         EventEntity,
         "SELECT * FROM events WHERE decider_id = $1 ORDER BY events.offset DESC LIMIT 1",
         decider_id
     )
-    .fetch_one(&app.db)
+    .fetch_optional(&app.db)
     .await
     .map_err(|e| ErrorMessage {
         message: e.to_string(),

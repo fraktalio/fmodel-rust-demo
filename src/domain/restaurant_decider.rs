@@ -26,48 +26,50 @@ pub fn restaurant_decider<'a>() -> RestaurantDecider<'a> {
         decide: Box::new(|command, state| match command {
             RestaurantCommand::CreateRestaurant(command) => {
                 if state.is_some() {
-                    vec![RestaurantEvent::NotCreated(RestaurantNotCreated {
+                    Ok(vec![RestaurantEvent::NotCreated(RestaurantNotCreated {
                         identifier: command.identifier.to_owned(),
                         name: command.name.to_owned(),
                         menu: command.menu.to_owned(),
                         reason: Reason("Restaurant already exists".to_string()),
-                    })]
+                    })])
                 } else {
-                    vec![RestaurantEvent::Created(RestaurantCreated {
+                    Ok(vec![RestaurantEvent::Created(RestaurantCreated {
                         identifier: command.identifier.to_owned(),
                         name: command.name.to_owned(),
                         menu: command.menu.to_owned(),
-                    })]
+                    })])
                 }
             }
             RestaurantCommand::ChangeMenu(command) => {
                 if state.is_some() {
-                    vec![RestaurantEvent::MenuChanged(RestaurantMenuChanged {
+                    Ok(vec![RestaurantEvent::MenuChanged(RestaurantMenuChanged {
                         identifier: command.identifier.to_owned(),
                         menu: command.menu.to_owned(),
-                    })]
+                    })])
                 } else {
-                    vec![RestaurantEvent::MenuNotChanged(RestaurantMenuNotChanged {
-                        identifier: command.identifier.to_owned(),
-                        menu: command.menu.to_owned(),
-                        reason: Reason("Restaurant does not exist".to_string()),
-                    })]
+                    Ok(vec![RestaurantEvent::MenuNotChanged(
+                        RestaurantMenuNotChanged {
+                            identifier: command.identifier.to_owned(),
+                            menu: command.menu.to_owned(),
+                            reason: Reason("Restaurant does not exist".to_string()),
+                        },
+                    )])
                 }
             }
             RestaurantCommand::PlaceOrder(command) => {
                 if state.is_some() {
-                    vec![RestaurantEvent::OrderPlaced(OrderPlaced {
+                    Ok(vec![RestaurantEvent::OrderPlaced(OrderPlaced {
                         identifier: command.identifier.to_owned(),
                         order_identifier: command.order_identifier.to_owned(),
                         line_items: command.line_items.to_owned(),
-                    })]
+                    })])
                 } else {
-                    vec![RestaurantEvent::OrderNotPlaced(OrderNotPlaced {
+                    Ok(vec![RestaurantEvent::OrderNotPlaced(OrderNotPlaced {
                         identifier: command.identifier.to_owned(),
                         order_identifier: command.order_identifier.to_owned(),
                         line_items: command.line_items.to_owned(),
                         reason: Reason("Restaurant does not exist".to_string()),
-                    })]
+                    })])
                 }
             }
         }),
@@ -148,7 +150,7 @@ mod restaurant_decider_tests {
         let new_events = decider.compute_new_events(&[], &create_restaurant_command);
         assert_eq!(
             new_events,
-            [RestaurantEvent::Created(RestaurantCreated {
+            Ok(vec![RestaurantEvent::Created(RestaurantCreated {
                 identifier: restaurant_identifier.clone(),
                 name: RestaurantName("Restaurant 1".to_string()),
                 menu: RestaurantMenu {
@@ -156,13 +158,13 @@ mod restaurant_decider_tests {
                     items: menu_items.clone(),
                     cuisine: RestaurantMenuCuisine::Vietnamese,
                 },
-            })]
+            })])
         );
         // ### StateStored flavour ### - Test the decider: given STATE, when COMMAND, then NEW STATE
         let new_state = decider.compute_new_state(None, &create_restaurant_command);
         assert_eq!(
             new_state,
-            Some(Restaurant {
+            Ok(Some(Restaurant {
                 identifier: restaurant_identifier.clone(),
                 name: RestaurantName("Restaurant 1".to_string()),
                 menu: RestaurantMenu {
@@ -170,7 +172,7 @@ mod restaurant_decider_tests {
                     items: menu_items.clone(),
                     cuisine: RestaurantMenuCuisine::Vietnamese,
                 },
-            })
+            }))
         );
 
         // The command to create an order - MarkOrderAsPrepared
@@ -196,14 +198,14 @@ mod restaurant_decider_tests {
         let new_events = decider.compute_new_events(&old_events, &change_restaurant_menu);
         assert_eq!(
             new_events,
-            [RestaurantEvent::MenuChanged(RestaurantMenuChanged {
+            Ok(vec![RestaurantEvent::MenuChanged(RestaurantMenuChanged {
                 identifier: restaurant_identifier.clone(),
                 menu: RestaurantMenu {
                     menu_id: menu_id.clone(),
                     items: menu_items.clone(),
                     cuisine: RestaurantMenuCuisine::Japanese,
                 },
-            })]
+            })])
         );
 
         // ### StateStored flavour ### - Test the decider: given STATE, when COMMAND, then NEW STATE
@@ -219,7 +221,7 @@ mod restaurant_decider_tests {
         let new_state = decider.compute_new_state(Some(old_state), &change_restaurant_menu);
         assert_eq!(
             new_state,
-            Some(Restaurant {
+            Ok(Some(Restaurant {
                 identifier: restaurant_identifier.clone(),
                 name: RestaurantName("Restaurant 1".to_string()),
                 menu: RestaurantMenu {
@@ -227,7 +229,7 @@ mod restaurant_decider_tests {
                     items: menu_items.clone(),
                     cuisine: RestaurantMenuCuisine::Japanese,
                 },
-            })
+            }))
         );
     }
 }

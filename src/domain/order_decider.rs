@@ -25,19 +25,19 @@ pub fn order_decider<'a>() -> OrderDecider<'a> {
         decide: Box::new(|command, state| match command {
             OrderCommand::Create(command) => {
                 if state.is_some() {
-                    vec![OrderEvent::NotCreated(OrderNotCreated {
+                    Ok(vec![OrderEvent::NotCreated(OrderNotCreated {
                         identifier: command.identifier.to_owned(),
                         restaurant_identifier: command.restaurant_identifier.to_owned(),
                         line_items: command.line_items.to_owned(),
                         reason: Reason("Order already exists".to_string()),
-                    })]
+                    })])
                 } else {
-                    vec![OrderEvent::Created(OrderCreated {
+                    Ok(vec![OrderEvent::Created(OrderCreated {
                         identifier: command.identifier.to_owned(),
                         restaurant_identifier: command.restaurant_identifier.to_owned(),
                         status: OrderStatus::Created,
                         line_items: command.line_items.to_owned(),
-                    })]
+                    })])
                 }
             }
             OrderCommand::MarkAsPrepared(command) => {
@@ -45,15 +45,15 @@ pub fn order_decider<'a>() -> OrderDecider<'a> {
                     .clone()
                     .is_some_and(|s| OrderStatus::Created == s.status)
                 {
-                    vec![OrderEvent::Prepared(OrderPrepared {
+                    Ok(vec![OrderEvent::Prepared(OrderPrepared {
                         identifier: command.identifier.to_owned(),
                         status: OrderStatus::Prepared,
-                    })]
+                    })])
                 } else {
-                    vec![OrderEvent::NotPrepared(OrderNotPrepared {
+                    Ok(vec![OrderEvent::NotPrepared(OrderNotPrepared {
                         identifier: command.identifier.to_owned(),
                         reason: Reason("Order in the wrong status previously".to_string()),
-                    })]
+                    })])
                 }
             }
         }),
@@ -125,23 +125,23 @@ mod order_decider_tests {
         let new_events = decider.compute_new_events(&[], &create_order_command);
         assert_eq!(
             new_events,
-            [OrderEvent::Created(OrderCreated {
+            Ok(vec![OrderEvent::Created(OrderCreated {
                 identifier: identifier.clone(),
                 restaurant_identifier: restaurant_identifier.clone(),
                 status: OrderStatus::Created,
                 line_items: line_items.clone(),
-            })]
+            })])
         );
         // ### StateStored flavour ### - Test the decider: given STATE, when COMMAND, then NEW STATE
         let new_state = decider.compute_new_state(None, &create_order_command);
         assert_eq!(
             new_state,
-            Some(Order {
+            Ok(Some(Order {
                 identifier: identifier.clone(),
                 restaurant_identifier: restaurant_identifier.clone(),
                 status: OrderStatus::Created,
                 line_items: line_items.clone(),
-            })
+            }))
         );
 
         // The command to create an order - MarkOrderAsPrepared
@@ -159,10 +159,10 @@ mod order_decider_tests {
         let new_events = decider.compute_new_events(&old_events, &mark_order_as_prepared);
         assert_eq!(
             new_events,
-            [OrderEvent::Prepared(OrderPrepared {
+            Ok(vec![OrderEvent::Prepared(OrderPrepared {
                 identifier: identifier.clone(),
                 status: OrderStatus::Prepared,
-            })]
+            })])
         );
 
         // ### StateStored flavour ### - Test the decider: given STATE, when COMMAND, then NEW STATE
@@ -175,12 +175,12 @@ mod order_decider_tests {
         let new_state = decider.compute_new_state(Some(old_state), &mark_order_as_prepared);
         assert_eq!(
             new_state,
-            Some(Order {
+            Ok(Some(Order {
                 identifier: identifier.clone(),
                 restaurant_identifier: restaurant_identifier.clone(),
                 status: OrderStatus::Prepared,
                 line_items: line_items.clone(),
-            })
+            }))
         );
     }
 }
