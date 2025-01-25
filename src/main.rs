@@ -110,21 +110,6 @@ async fn main() -> std::io::Result<()> {
         }),
     ));
 
-    // ##### COMMAND SIDE - create one aggregate that combines all deciders - monolithic scenario #####
-    // Create general event repository, for all event types - command side
-    let event_repository = AggregateEventRepository::new(Database { db: pool.clone() });
-    // Combined aggregate - command side
-    let _combined_aggregate = Arc::new(EventSourcedAggregate::new(
-        event_repository,
-        // Decider
-        // Error type needs to match the error type of the aggregate
-        restaurant_decider()
-            .combine(order_decider())
-            .map_error(&|_| ErrorMessage {
-                message: "Decider error".to_string(),
-            }),
-    ));
-
     // ###### QUERY SIDE ######
     // Create the restaurant query handler -
     let restaurant_query_handler =

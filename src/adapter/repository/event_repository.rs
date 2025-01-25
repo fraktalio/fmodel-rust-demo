@@ -1,10 +1,11 @@
 use fmodel_rust::aggregate::EventRepository;
+use fmodel_rust::Identifier;
 use uuid::Uuid;
 
 use crate::adapter::database::entity::{EventEntity, NewEventEntity};
 use crate::adapter::database::error::ErrorMessage;
 use crate::adapter::database::queries::{append_events, get_latest_event, list_events};
-use crate::domain::api::{DeciderName, EventName, Identifier};
+use crate::domain::api::{DeciderName, EventName};
 use crate::{adapter, Database};
 /// EventRepository struct
 pub struct AggregateEventRepository {

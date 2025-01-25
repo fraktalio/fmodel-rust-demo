@@ -1,4 +1,4 @@
-use fmodel_rust::Sum;
+use fmodel_rust::{Identifier, Sum};
 use serde::{Deserialize, Serialize};
 use std::fmt;
 use uuid::Uuid;
@@ -320,20 +320,12 @@ pub enum OrderEvent {
     NotPrepared(OrderNotPrepared),
 }
 
-/// All possible command variants that could be sent
-pub type Command = Sum<RestaurantCommand, OrderCommand>;
-
 /// All possible event variants that could be used
 pub type Event = Sum<RestaurantEvent, OrderEvent>;
 
 // ########################################################
 // ####################     TRAITS      ###################
 // ########################################################
-
-/// ###### Trait to get the identifier of a message #######
-pub trait Identifier {
-    fn identifier(&self) -> String;
-}
 
 impl Identifier for RestaurantCommand {
     fn identifier(&self) -> String {
@@ -350,15 +342,6 @@ impl Identifier for OrderCommand {
         match self {
             OrderCommand::Create(command) => command.identifier.to_string(),
             OrderCommand::MarkAsPrepared(command) => command.identifier.to_string(),
-        }
-    }
-}
-
-impl Identifier for Command {
-    fn identifier(&self) -> String {
-        match self {
-            Command::First(command) => command.identifier(),
-            Command::Second(command) => command.identifier(),
         }
     }
 }
@@ -383,15 +366,6 @@ impl Identifier for OrderEvent {
             OrderEvent::NotCreated(event) => event.identifier.to_string(),
             OrderEvent::Prepared(event) => event.identifier.to_string(),
             OrderEvent::NotPrepared(event) => event.identifier.to_string(),
-        }
-    }
-}
-
-impl Identifier for Event {
-    fn identifier(&self) -> String {
-        match self {
-            Event::First(event) => event.identifier(),
-            Event::Second(event) => event.identifier(),
         }
     }
 }
