@@ -43,25 +43,6 @@ Content-Type: application/json
   }
 }
 
-###
-
-POST http://localhost:8000/api/commands/restaurant
-Content-Type: application/json
-
-{
-  "identifier": "3ac06cc7-0b59-436e-8c54-576f3cca01a8",
-  "order_identifier": "4ac06cc7-0b59-436e-8c54-576f3cca01a9",
-  "type": "PlaceOrder",
-  "line_items": [
-    {
-      "menu_item_id": "bf273f6c-0702-450c-9d44-34913e248378",
-      "name": "menuItemName",
-      "quantity": 2,
-      "id": "bf273f6c-0702-450c-9d44-34913e248378"
-    }
-  ]
-}
-
 
 ### Order Queries
 

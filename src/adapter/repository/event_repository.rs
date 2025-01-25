@@ -45,15 +45,14 @@ where
     }
 
     async fn save(&self, events: &[E]) -> Result<Vec<(E, Uuid)>, ErrorMessage> {
-        let first_event: &E = events.first().unwrap();
-        let mut latest_version: Option<Uuid> = <adapter::repository::event_repository::AggregateEventRepository as fmodel_rust::aggregate::EventRepository<C, E, uuid::Uuid, adapter::database::error::ErrorMessage>>::version_provider(self,first_event).await?;
-        //let mut latest_version: Option<Uuid> = self.version_provider(first_event).await?;
         let mut result = Vec::new();
 
+        // TODO: Use a transaction to ensure all events are saved or none
         for event in events {
+            let latest_version: Option<Uuid> = <adapter::repository::event_repository::AggregateEventRepository as fmodel_rust::aggregate::EventRepository<C, E, uuid::Uuid, adapter::database::error::ErrorMessage>>::version_provider(self,event).await?;
             let event_request = event.to_event_entity(latest_version)?;
+            log::debug!("####### Saving event ########: {:?}", event_request);
             append_event(&event_request, &self.database).await?;
-            latest_version = Some(event_request.event_id);
             result.push(((*event).to_owned(), event_request.event_id));
         }
 
