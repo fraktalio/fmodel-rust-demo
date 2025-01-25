@@ -3,9 +3,7 @@ use uuid::Uuid;
 
 use crate::adapter::database::entity::{EventEntity, NewEventEntity};
 use crate::adapter::database::error::ErrorMessage;
-use crate::adapter::database::queries::{
-    append_event, append_events, get_latest_event, list_events,
-};
+use crate::adapter::database::queries::{append_events, get_latest_event, list_events};
 use crate::domain::api::{DeciderName, EventName, Identifier};
 use crate::{adapter, Database};
 /// EventRepository struct
