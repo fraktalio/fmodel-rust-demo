@@ -3,7 +3,9 @@ use uuid::Uuid;
 
 use crate::adapter::database::entity::{EventEntity, NewEventEntity};
 use crate::adapter::database::error::ErrorMessage;
-use crate::adapter::database::queries::{append_event, get_latest_event, list_events};
+use crate::adapter::database::queries::{
+    append_event, append_events, get_latest_event, list_events,
+};
 use crate::domain::api::{DeciderName, EventName, Identifier};
 use crate::{adapter, Database};
 /// EventRepository struct
@@ -46,16 +48,17 @@ where
 
     async fn save(&self, events: &[E]) -> Result<Vec<(E, Uuid)>, ErrorMessage> {
         let mut result = Vec::new();
-
-        // TODO: Use a transaction to ensure all events are saved or none
+        let mut new_events = Vec::new();
         for event in events {
             let latest_version: Option<Uuid> = <adapter::repository::event_repository::AggregateEventRepository as fmodel_rust::aggregate::EventRepository<C, E, uuid::Uuid, adapter::database::error::ErrorMessage>>::version_provider(self,event).await?;
             let event_request = event.to_event_entity(latest_version)?;
-            log::debug!("####### Saving event ########: {:?}", event_request);
-            append_event(&event_request, &self.database).await?;
             result.push(((*event).to_owned(), event_request.event_id));
+            new_events.push(event_request);
         }
 
+        log::debug!("####### Saving events ########");
+
+        append_events(&new_events, &self.database).await?;
         Ok(result)
     }
     async fn version_provider(&self, event: &E) -> Result<Option<Uuid>, ErrorMessage> {
