@@ -48,19 +48,17 @@ pub fn order_view<'a>() -> OrderView<'a> {
 #[cfg(test)]
 /// Tests for the Order view
 mod order_view_tests {
-    use fmodel_rust::view::ViewStateComputation;
+    use fmodel_rust::specification::ViewTestSpecification;
     use uuid::Uuid;
 
     use crate::domain::api::{
         MenuItemId, MenuItemName, OrderCreated, OrderEvent, OrderId, OrderLineItem,
         OrderLineItemId, OrderLineItemQuantity, OrderPrepared, OrderStatus, RestaurantId,
     };
-    use crate::domain::order_view::{order_view, OrderView, OrderViewState};
+    use crate::domain::order_view::{order_view, OrderViewState};
 
     #[test]
-    fn test() {
-        // The Order view
-        let view: OrderView = order_view();
+    fn order_view_test() {
         // The data
         let identifier = OrderId(Uuid::parse_str("02f09a3f-1624-3b1d-8409-44eff7708207").unwrap());
         let restaurant_identifier =
@@ -76,43 +74,38 @@ mod order_view_tests {
             menu_item_id,
         }];
 
-        let order_created: OrderEvent = OrderEvent::Created(OrderCreated {
+        let order_created_event: OrderEvent = OrderEvent::Created(OrderCreated {
             identifier: identifier.clone(),
             restaurant_identifier: restaurant_identifier.clone(),
             status: OrderStatus::Created,
             line_items: line_items.clone(),
         });
 
-        let new_state = view.compute_new_state(None, &[&order_created]);
-        assert_eq!(
-            new_state,
-            Some(OrderViewState {
+        ViewTestSpecification::default()
+            .for_view(self::order_view())
+            .given(vec![order_created_event.clone()])
+            .then(Some(OrderViewState {
                 identifier: identifier.clone(),
                 restaurant_identifier: restaurant_identifier.clone(),
                 status: OrderStatus::Created,
                 line_items: line_items.clone(),
-            })
-        );
+            }));
 
-        let order_prepared: OrderEvent = OrderEvent::Prepared(OrderPrepared {
+        let order_prepared_event: OrderEvent = OrderEvent::Prepared(OrderPrepared {
             identifier: identifier.clone(),
             status: OrderStatus::Prepared,
         });
-        let old_state = Some(OrderViewState {
-            identifier: identifier.clone(),
-            restaurant_identifier: restaurant_identifier.clone(),
-            status: OrderStatus::Created,
-            line_items: line_items.clone(),
-        });
-        let new_state = view.compute_new_state(Some(old_state), &[&order_prepared]);
-        assert_eq!(
-            new_state,
-            Some(OrderViewState {
+        ViewTestSpecification::default()
+            .for_view(self::order_view())
+            .given(vec![
+                order_created_event.clone(),
+                order_prepared_event.clone(),
+            ])
+            .then(Some(OrderViewState {
                 identifier: identifier.clone(),
                 restaurant_identifier: restaurant_identifier.clone(),
                 status: OrderStatus::Prepared,
                 line_items: line_items.clone(),
-            })
-        );
+            }));
     }
 }
