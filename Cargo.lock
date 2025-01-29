@@ -742,8 +742,9 @@ dependencies = [
 
 [[package]]
 name = "fmodel-rust"
-version = "0.7.1"
-source = "git+https://github.com/fraktalio/fmodel-rust.git#145a99ab0b4d38ac0b27ac48b2e08133ce494dde"
+version = "0.8.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ebc35d0726d249225ab19f5796a082058305fe40ebc7b1b14690d24d6b708224"
 dependencies = [
  "serde",
 ]
