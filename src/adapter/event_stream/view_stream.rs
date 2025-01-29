@@ -2,9 +2,8 @@ use std::sync::Arc;
 
 use crate::adapter::database::error::ErrorMessage;
 use crate::adapter::database::queries::{ack_event, nack_event, stream_events};
-use crate::adapter::repository::order_event_repository::ToOrderEvent;
+use crate::adapter::repository::event_repository::ToEvent;
 use crate::adapter::repository::order_view_state_repository::OrderViewStateRepository;
-use crate::adapter::repository::restaurant_event_repository::ToRestaurantEvent;
 use crate::adapter::repository::restaurant_view_state_repository::RestaurantViewStateRepository;
 use crate::application::api::{OrderMaterializedView, RestaurantMaterializedView};
 use crate::Database;
@@ -25,7 +24,7 @@ pub async fn stream_events_to_view(
             match event_entity.decider.as_str() {
                 "Restaurant" => {
                     match restaurant_materialized_view
-                        .handle(&event_entity.to_restaurant_event()?)
+                        .handle(&event_entity.to_event()?)
                         .await
                     {
                         Ok(_) => {
@@ -52,7 +51,7 @@ pub async fn stream_events_to_view(
                 }
                 "Order" => {
                     match order_materialized_view
-                        .handle(&event_entity.to_order_event()?)
+                        .handle(&event_entity.to_event()?)
                         .await
                     {
                         Ok(_) => {

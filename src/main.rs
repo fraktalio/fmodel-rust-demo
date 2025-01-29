@@ -11,9 +11,7 @@ use crate::adapter::event_stream::saga_stream::stream_events_to_saga;
 use crate::adapter::event_stream::view_stream::stream_events_to_view;
 use crate::adapter::publisher::order_action_publisher::OrderActionPublisher;
 use crate::adapter::repository::event_repository::AggregateEventRepository;
-use crate::adapter::repository::order_event_repository::OrderEventRepository;
 use crate::adapter::repository::order_view_state_repository::OrderViewStateRepository;
-use crate::adapter::repository::restaurant_event_repository::RestaurantEventRepository;
 use crate::adapter::repository::restaurant_view_state_repository::RestaurantViewStateRepository;
 use crate::adapter::web::handler;
 use crate::application::api::Application;
@@ -25,6 +23,7 @@ use crate::domain::restaurant_view::restaurant_view;
 use actix_cors::Cors;
 use actix_web::middleware::Logger;
 use actix_web::{http::header, web, App, HttpServer};
+use adapter::database::error::ErrorMessage;
 use dotenv::dotenv;
 use env_logger::{init_from_env, Env};
 use fmodel_rust::aggregate::EventSourcedAggregate;
@@ -89,27 +88,26 @@ async fn main() -> std::io::Result<()> {
 
     // ##### COMMAND SIDE - create an aggregate per decider - distributed scenario #####
     // Create the order repository - command side
-    let order_event_repository = OrderEventRepository::new(Database { db: pool.clone() });
+    let order_event_repository = AggregateEventRepository::new(Database { db: pool.clone() });
     // Create the restaurant repository - command side
-    let restaurant_event_repository = RestaurantEventRepository::new(Database { db: pool.clone() });
+    let restaurant_event_repository = AggregateEventRepository::new(Database { db: pool.clone() });
     // Create the restaurant aggregate - command side
     let restaurant_aggregate = Arc::new(EventSourcedAggregate::new(
         restaurant_event_repository,
-        restaurant_decider(),
+        // Decider
+        // Error type needs to match the error type of the aggregate
+        restaurant_decider().map_error(&|_| ErrorMessage {
+            message: "Restaurant decider error".to_string(),
+        }),
     ));
     // Create the order aggregate - command side
     let order_aggregate = Arc::new(EventSourcedAggregate::new(
         order_event_repository,
-        order_decider(),
-    ));
-
-    // ##### COMMAND SIDE - create one aggregate that combines all deciders - monolithic scenario #####
-    // Create general event repository, for all event types - command side
-    let event_repository = AggregateEventRepository::new(Database { db: pool.clone() });
-    // Combined aggregate - command side
-    let _combined_aggregate = Arc::new(EventSourcedAggregate::new(
-        event_repository,
-        restaurant_decider().combine(order_decider()),
+        // Decider
+        // Error type needs to match the error type of the aggregate
+        order_decider().map_error(&|_| ErrorMessage {
+            message: "Order decider error".to_string(),
+        }),
     ));
 
     // ###### QUERY SIDE ######

@@ -20,7 +20,7 @@ pub type OrderAggregate<'a, R> = EventSourcedAggregate<
     Option<Order>,
     OrderEvent,
     R,
-    Decider<'a, OrderCommand, Option<Order>, OrderEvent>,
+    Decider<'a, OrderCommand, Option<Order>, OrderEvent, ErrorMessage>,
     Uuid,
     ErrorMessage,
 >;
@@ -31,7 +31,7 @@ pub type RestaurantAggregate<'a, R> = EventSourcedAggregate<
     Option<Restaurant>,
     RestaurantEvent,
     R,
-    Decider<'a, RestaurantCommand, Option<Restaurant>, RestaurantEvent>,
+    Decider<'a, RestaurantCommand, Option<Restaurant>, RestaurantEvent, ErrorMessage>,
     Uuid,
     ErrorMessage,
 >;

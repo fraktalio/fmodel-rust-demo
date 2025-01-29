@@ -1,10 +1,11 @@
 use fmodel_rust::materialized_view::ViewStateRepository;
+use fmodel_rust::Identifier;
 
 use crate::adapter::database::entity::OrderEntity;
 use crate::adapter::database::error::ErrorMessage;
 use crate::adapter::database::queries::{get_all_orders, get_order, upsert_order};
 use crate::application::api::OrderQueryHandler;
-use crate::domain::api::{Identifier, OrderEvent};
+use crate::domain::api::OrderEvent;
 use crate::domain::order_view::OrderViewState;
 use crate::Database;
 

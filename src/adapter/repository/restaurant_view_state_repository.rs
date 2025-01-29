@@ -1,10 +1,11 @@
 use fmodel_rust::materialized_view::ViewStateRepository;
+use fmodel_rust::Identifier;
 
 use crate::adapter::database::entity::RestaurantEntity;
 use crate::adapter::database::error::ErrorMessage;
 use crate::adapter::database::queries::{get_all_restaurants, get_restaurant, upsert_restaurant};
 use crate::application::api::RestaurantQueryHandler;
-use crate::domain::api::{Identifier, RestaurantEvent};
+use crate::domain::api::RestaurantEvent;
 use crate::domain::restaurant_view::RestaurantViewState;
 use crate::Database;
 

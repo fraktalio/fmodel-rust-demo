@@ -56,13 +56,13 @@ pub async fn list_events(
 pub async fn get_latest_event(
     decider_id: &String,
     app: &Database,
-) -> Result<EventEntity, ErrorMessage> {
+) -> Result<Option<EventEntity>, ErrorMessage> {
     sqlx::query_as!(
         EventEntity,
         "SELECT * FROM events WHERE decider_id = $1 ORDER BY events.offset DESC LIMIT 1",
         decider_id
     )
-    .fetch_one(&app.db)
+    .fetch_optional(&app.db)
     .await
     .map_err(|e| ErrorMessage {
         message: e.to_string(),
@@ -94,6 +94,50 @@ pub async fn append_event(
         .map_err(|e| ErrorMessage {
             message: e.to_string(),
         })
+}
+
+#[allow(dead_code)]
+pub async fn append_events(
+    events: &[NewEventEntity],
+    app: &Database, // Ensure `Database` contains `sqlx::Pool<sqlx::Postgres>`
+) -> Result<Vec<EventEntity>, ErrorMessage> {
+    // Start a new transaction
+    let mut tx = app.db.begin().await.map_err(|e| ErrorMessage {
+        message: e.to_string(),
+    })?;
+
+    let mut appended_events = Vec::new();
+
+    for event in events {
+        let appended_event = sqlx::query_as!(
+            EventEntity,
+            "INSERT INTO events (event, event_id, decider, decider_id, data, command_id, previous_id, final)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+            RETURNING *",
+            event.event,
+            event.event_id,
+            event.decider,
+            event.decider_id,
+            event.data,
+            event.command_id,
+            event.previous_id,
+            event.r#final
+        )
+        .fetch_one(&mut *tx)
+        .await
+        .map_err(|e| ErrorMessage {
+            message: e.to_string(),
+        })?;
+
+        appended_events.push(appended_event);
+    }
+
+    // Commit the transaction
+    tx.commit().await.map_err(|e| ErrorMessage {
+        message: e.to_string(),
+    })?;
+
+    Ok(appended_events)
 }
 
 // ############################### QUERY SIDE ###############################
