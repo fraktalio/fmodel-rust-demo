@@ -30,6 +30,19 @@ Find the documentation at [https://docs.rs/fmodel-rust/latest/fmodel_rust/](http
         - When `< an action/trigger occurs / commands>`
         - Then `< some post condition / events >`
 
+```rust
+        DeciderTestSpecification::default()
+            .for_decider(self::order_decider()) // Set the decider
+            .given(vec![]) // no existing events
+            .when(create_order_command.clone()) // Create an Order
+            .then(vec![OrderEvent::Created(OrderCreated {
+                identifier: identifier.clone(),
+                restaurant_identifier: restaurant_identifier.clone(),
+                status: OrderStatus::Created,
+                line_items: line_items.clone(),
+            })]);
+```
+
 ## Fstore-SQL
 
 This project is using [PostgreSQL powered event store](https://github.com/fraktalio/fstore-sql), optimized for event
