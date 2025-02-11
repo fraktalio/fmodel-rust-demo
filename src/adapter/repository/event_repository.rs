@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use fmodel_rust::aggregate::EventRepository;
 use fmodel_rust::Identifier;
 use uuid::Uuid;
@@ -33,7 +35,7 @@ where
         + ToEventEntity,
 {
     async fn fetch_events(&self, command: &C) -> Result<Vec<(E, Uuid)>, ErrorMessage> {
-        // https://doc.rust-lang.org/rust-by-example/error/iter_result.html#fail-the-entire-operation-with-collect
+        log::debug!("Fetching events for command: {:?}", command.identifier());
         list_events(&command.identifier(), &self.database)
             .await?
             .into_iter()
@@ -46,20 +48,33 @@ where
     }
 
     async fn save(&self, events: &[E]) -> Result<Vec<(E, Uuid)>, ErrorMessage> {
-        let mut result = Vec::new();
+        let mut result_events = Vec::new();
         let mut new_events = Vec::new();
+        // Key is the identifier (decider_id) of the event, value is the latest version of the event for this partition/stream/decider_id
+        let mut latest_versions: HashMap<String, Uuid> = HashMap::new();
+
         for event in events {
-            let latest_version: Option<Uuid> = <adapter::repository::event_repository::AggregateEventRepository as fmodel_rust::aggregate::EventRepository<C, E, uuid::Uuid, adapter::database::error::ErrorMessage>>::version_provider(self,event).await?;
+            let latest_version = match latest_versions.get(&event.identifier()) {
+                Some(&v) => Some(v),
+                None => {
+                    let v = <adapter::repository::event_repository::AggregateEventRepository as fmodel_rust::aggregate::EventRepository<C, E, uuid::Uuid, adapter::database::error::ErrorMessage>>::version_provider(self,event).await?;
+                    if let Some(version) = v {
+                        latest_versions.insert(event.identifier().to_owned(), version);
+                    }
+                    v
+                }
+            };
             let event_request = event.to_event_entity(latest_version)?;
-            result.push(((*event).to_owned(), event_request.event_id));
-            new_events.push(event_request);
+            result_events.push(((*event).to_owned(), event_request.event_id));
+            new_events.push(event_request.to_owned());
+            // Update the latest version of the event for this partition/stream/decider_id
+            latest_versions.insert(event.identifier().to_owned(), event_request.event_id);
         }
-
-        log::debug!("####### Saving events ########");
-
+        log::debug!("Saving events...");
         append_events(&new_events, &self.database).await?;
-        Ok(result)
+        Ok(result_events)
     }
+
     async fn version_provider(&self, event: &E) -> Result<Option<Uuid>, ErrorMessage> {
         get_latest_event(&event.identifier(), &self.database)
             .await

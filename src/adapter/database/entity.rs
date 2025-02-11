@@ -19,7 +19,7 @@ pub struct EventEntity {
     pub offset: i64,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct NewEventEntity {
     pub decider: String,
     pub decider_id: String,
