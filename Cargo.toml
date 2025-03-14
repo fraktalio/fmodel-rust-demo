@@ -6,7 +6,7 @@ authors = ["Ivan Dugalic <ivan.dugalic@fraktalio.com>"]
 
 
 [dependencies]
-fmodel-rust = "0.8.0"
+fmodel-rust = "0.7.0"
 actix-cors = "0.7.0"
 actix-web = "4.9.0"
 actix-rt = "2.10.0"
