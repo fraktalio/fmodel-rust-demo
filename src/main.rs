@@ -70,7 +70,7 @@ async fn main() -> std::io::Result<()> {
             pool
         }
         Err(err) => {
-            error!("🔥 Failed to connect to the database: {:?}", err);
+            error!("🔥 Failed to connect to the database: {err:?}");
             exit(1);
         }
     };
@@ -81,7 +81,7 @@ async fn main() -> std::io::Result<()> {
             info!("✅ Migration is successful!");
         }
         Err(err) => {
-            error!("🔥 Migration failed: {:?}", err);
+            error!("🔥 Migration failed: {err:?}");
             exit(1);
         }
     }
@@ -96,7 +96,7 @@ async fn main() -> std::io::Result<()> {
         restaurant_event_repository,
         // Decider
         // Error type needs to match the error type of the aggregate
-        restaurant_decider().map_error(&|_| ErrorMessage {
+        restaurant_decider().map_error(|_| ErrorMessage {
             message: "Restaurant decider error".to_string(),
         }),
     ));
@@ -105,7 +105,7 @@ async fn main() -> std::io::Result<()> {
         order_event_repository,
         // Decider
         // Error type needs to match the error type of the aggregate
-        order_decider().map_error(&|_| ErrorMessage {
+        order_decider().map_error(|_| ErrorMessage {
             message: "Order decider error".to_string(),
         }),
     ));

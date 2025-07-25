@@ -18,17 +18,14 @@ pub async fn register_decider(
     decider: &String,
     app: &Data<Database>,
 ) -> Result<DeciderEventEntity, ErrorMessage> {
-    sqlx::query_as!(
+    Ok(sqlx::query_as!(
         DeciderEventEntity,
         "INSERT INTO deciders (decider, event) VALUES ($1, $2) RETURNING *;",
         event,
         decider
     )
     .fetch_one(&app.db)
-    .await
-    .map_err(|e| ErrorMessage {
-        message: e.to_string(),
-    })
+    .await?)
 }
 
 /// DB: Get events by `decider_id`
@@ -38,16 +35,13 @@ pub async fn list_events(
     decider_id: &String,
     app: &Database,
 ) -> Result<Vec<EventEntity>, ErrorMessage> {
-    sqlx::query_as!(
+    Ok(sqlx::query_as!(
         EventEntity,
         "SELECT * FROM events WHERE decider_id = $1 ORDER BY events.offset",
         decider_id
     )
     .fetch_all(&app.db)
-    .await
-    .map_err(|e| ErrorMessage {
-        message: e.to_string(),
-    })
+    .await?)
 }
 
 /// DB: Get the latest event by `decider_id`
@@ -57,16 +51,13 @@ pub async fn get_latest_event(
     decider_id: &String,
     app: &Database,
 ) -> Result<Option<EventEntity>, ErrorMessage> {
-    sqlx::query_as!(
+    Ok(sqlx::query_as!(
         EventEntity,
         "SELECT * FROM events WHERE decider_id = $1 ORDER BY events.offset DESC LIMIT 1",
         decider_id
     )
     .fetch_optional(&app.db)
-    .await
-    .map_err(|e| ErrorMessage {
-        message: e.to_string(),
-    })
+    .await?)
 }
 
 /// DB: Append/Insert new 'event'
@@ -75,7 +66,7 @@ pub async fn append_event(
     event: &NewEventEntity,
     app: &Database,
 ) -> Result<EventEntity, ErrorMessage> {
-    sqlx::query_as!(
+    Ok(sqlx::query_as!(
         EventEntity,
         "INSERT INTO events (event, event_id, decider, decider_id, data, command_id, previous_id, final)
             VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
@@ -90,10 +81,7 @@ pub async fn append_event(
         event.r#final
     )
         .fetch_one(&app.db)
-        .await
-        .map_err(|e| ErrorMessage {
-            message: e.to_string(),
-        })
+        .await?)
 }
 
 #[allow(dead_code)]
@@ -124,18 +112,13 @@ pub async fn append_events(
             event.r#final
         )
         .fetch_one(&mut *tx)
-        .await
-        .map_err(|e| ErrorMessage {
-            message: e.to_string(),
-        })?;
+        .await?;
 
         appended_events.push(appended_event);
     }
 
     // Commit the transaction
-    tx.commit().await.map_err(|e| ErrorMessage {
-        message: e.to_string(),
-    })?;
+    tx.commit().await?;
 
     Ok(appended_events)
 }
@@ -149,7 +132,7 @@ pub async fn register_view(
     pooling_delay: &i64,
     app: &Data<Database>,
 ) -> Result<ViewEntity, ErrorMessage> {
-    sqlx::query_as!(
+    Ok(sqlx::query_as!(
         ViewEntity,
         "INSERT INTO views (view, pooling_delay)
                 VALUES ($1, $2)
@@ -158,10 +141,7 @@ pub async fn register_view(
         pooling_delay
     )
     .fetch_one(&app.db)
-    .await
-    .map_err(|e| ErrorMessage {
-        message: e.to_string(),
-    })
+    .await?)
 }
 
 /// DB: Stream events from the `event` table to the materialized view
@@ -169,13 +149,12 @@ pub async fn stream_events(
     view: &String,
     app: &Database,
 ) -> Result<Option<EventEntity>, ErrorMessage> {
-    sqlx::query_as::<_, EventEntity>("SELECT * FROM stream_events($1)")
-        .bind(view)
-        .fetch_optional(&app.db)
-        .await
-        .map_err(|e| ErrorMessage {
-            message: e.to_string(),
-        })
+    Ok(
+        sqlx::query_as::<_, EventEntity>("SELECT * FROM stream_events($1)")
+            .bind(view)
+            .fetch_optional(&app.db)
+            .await?,
+    )
 }
 
 /// DB: Ack that event was processed successfully
@@ -185,7 +164,7 @@ pub async fn ack_event(
     decider_id: &String,
     app: &Database,
 ) -> Result<LockEntity, ErrorMessage> {
-    sqlx::query_as!(
+    Ok(sqlx::query_as!(
         LockEntity,
         "UPDATE locks
             SET locked_until = NOW(), -- locked = false,
@@ -198,10 +177,7 @@ pub async fn ack_event(
         decider_id
     )
     .fetch_one(&app.db)
-    .await
-    .map_err(|e| ErrorMessage {
-        message: e.to_string(),
-    })
+    .await?)
 }
 
 /// DB: Nack that event was not processed successfully
@@ -210,7 +186,7 @@ pub async fn nack_event(
     decider_id: &String,
     app: &Database,
 ) -> Result<LockEntity, ErrorMessage> {
-    sqlx::query_as!(
+    Ok(sqlx::query_as!(
         LockEntity,
         "UPDATE locks
             SET locked_until = NOW() -- locked = false
@@ -221,30 +197,23 @@ pub async fn nack_event(
         decider_id
     )
     .fetch_one(&app.db)
-    .await
-    .map_err(|e| ErrorMessage {
-        message: e.to_string(),
-    })
+    .await?)
 }
 
 /// DB: Get the Order view state by `id`
 pub async fn get_order(id: &String, app: &Database) -> Result<Option<OrderEntity>, ErrorMessage> {
-    sqlx::query_as!(OrderEntity, "SELECT * FROM orders WHERE id = $1", id)
-        .fetch_optional(&app.db)
-        .await
-        .map_err(|e| ErrorMessage {
-            message: e.to_string(),
-        })
+    Ok(
+        sqlx::query_as!(OrderEntity, "SELECT * FROM orders WHERE id = $1", id)
+            .fetch_optional(&app.db)
+            .await?,
+    )
 }
 
 /// DB: Get all the Order view states
 pub async fn get_all_orders(app: &Database) -> Result<Vec<OrderEntity>, ErrorMessage> {
-    sqlx::query_as!(OrderEntity, "SELECT * FROM orders",)
+    Ok(sqlx::query_as!(OrderEntity, "SELECT * FROM orders",)
         .fetch_all(&app.db)
-        .await
-        .map_err(|e| ErrorMessage {
-            message: e.to_string(),
-        })
+        .await?)
 }
 
 /// DB: Insert/Update the Order view state
@@ -252,7 +221,7 @@ pub async fn upsert_order(
     order: &OrderEntity,
     app: &Database,
 ) -> Result<OrderEntity, ErrorMessage> {
-    sqlx::query_as!(
+    Ok(sqlx::query_as!(
         OrderEntity,
         "INSERT INTO orders (id, data)
             VALUES ($1, $2)
@@ -263,10 +232,7 @@ pub async fn upsert_order(
         order.data,
     )
     .fetch_one(&app.db)
-    .await
-    .map_err(|e| ErrorMessage {
-        message: e.to_string(),
-    })
+    .await?)
 }
 
 /// DB: Get the Restaurant view state by `id`
@@ -274,26 +240,22 @@ pub async fn get_restaurant(
     id: &String,
     app: &Database,
 ) -> Result<Option<RestaurantEntity>, ErrorMessage> {
-    sqlx::query_as!(
+    Ok(sqlx::query_as!(
         RestaurantEntity,
         "SELECT * FROM restaurants WHERE id = $1",
         id
     )
     .fetch_optional(&app.db)
-    .await
-    .map_err(|e| ErrorMessage {
-        message: e.to_string(),
-    })
+    .await?)
 }
 
 /// DB: Get all the Restaurant view states
 pub async fn get_all_restaurants(app: &Database) -> Result<Vec<RestaurantEntity>, ErrorMessage> {
-    sqlx::query_as!(RestaurantEntity, "SELECT * FROM restaurants",)
-        .fetch_all(&app.db)
-        .await
-        .map_err(|e| ErrorMessage {
-            message: e.to_string(),
-        })
+    Ok(
+        sqlx::query_as!(RestaurantEntity, "SELECT * FROM restaurants",)
+            .fetch_all(&app.db)
+            .await?,
+    )
 }
 
 /// DB: Insert/Update the Restaurant view state
@@ -301,7 +263,7 @@ pub async fn upsert_restaurant(
     restaurant: &RestaurantEntity,
     app: &Database,
 ) -> Result<RestaurantEntity, ErrorMessage> {
-    sqlx::query_as!(
+    Ok(sqlx::query_as!(
         RestaurantEntity,
         "INSERT INTO restaurants (id, data)
             VALUES ($1, $2)
@@ -312,8 +274,5 @@ pub async fn upsert_restaurant(
         restaurant.data,
     )
     .fetch_one(&app.db)
-    .await
-    .map_err(|e| ErrorMessage {
-        message: e.to_string(),
-    })
+    .await?)
 }

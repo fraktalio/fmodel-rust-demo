@@ -17,7 +17,7 @@ pub async fn stream_events_to_saga(
     // NOTE: Saga manager is also an event handler
     match stream_events(&"saga".to_string(), db).await {
         Ok(Some(event_entity)) => {
-            debug!("Processing Event in Saga: {:?}", event_entity);
+            debug!("Processing Event in Saga: {event_entity:?}");
             match event_entity.decider.as_str() {
                 "Restaurant" => match order_saga_manager.handle(&event_entity.to_event()?).await {
                     Ok(_) => {

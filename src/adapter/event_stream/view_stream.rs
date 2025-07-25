@@ -20,7 +20,7 @@ pub async fn stream_events_to_view(
     // Stream events from the `event` table to the materialized view of name "view"
     match stream_events(&"view".to_string(), db).await {
         Ok(Some(event_entity)) => {
-            debug!("Processing Event: {:?}", event_entity);
+            debug!("Processing Event: {event_entity:?}");
             match event_entity.decider.as_str() {
                 "Restaurant" => {
                     match restaurant_materialized_view
