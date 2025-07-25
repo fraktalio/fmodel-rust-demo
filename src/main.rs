@@ -4,7 +4,7 @@
 
 use std::env::var;
 use std::process::exit;
-use std::sync::Arc;
+use std::sync::{Arc, Once};
 use std::time::Duration;
 
 use crate::adapter::event_stream::saga_stream::stream_events_to_saga;
@@ -24,19 +24,20 @@ use actix_cors::Cors;
 use actix_web::middleware::Logger;
 use actix_web::{http::header, web, App, HttpServer};
 use adapter::database::error::ErrorMessage;
-use dotenv::dotenv;
-use env_logger::{init_from_env, Env};
+
 use fmodel_rust::aggregate::EventSourcedAggregate;
 use fmodel_rust::materialized_view::MaterializedView;
 use fmodel_rust::saga_manager::SagaManager;
-use log::{debug, error, info};
 use sqlx::{migrate, postgres::PgPoolOptions, Pool, Postgres};
 use tokio::time::sleep;
 use tokio_util::sync::CancellationToken;
+use tracing_subscriber::layer::SubscriberExt;
 
 mod adapter;
 mod application;
 mod domain;
+
+static INIT: Once = Once::new();
 
 /// Application state - database connection pool
 pub struct Database {
@@ -48,16 +49,8 @@ pub const DATABASE_URL: &str = "DATABASE_URL";
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-    // Load environment variables from .env file
-    dotenv().ok();
-    // Load environment variables from .env file for the logger
-    let env_logger = Env::new()
-        .default_filter_or("debug")
-        .default_write_style_or("always");
-
-    // Initialize the logger from the environment
-    init_from_env(env_logger);
-
+    // Initialize the logger
+    init_logger();
     // Initialize the database
     let database_url = var(DATABASE_URL).expect("DATABASE_URL must be set");
     let pool = match PgPoolOptions::new()
@@ -66,11 +59,11 @@ async fn main() -> std::io::Result<()> {
         .await
     {
         Ok(pool) => {
-            info!("✅ Connection to the database is successful!");
+            tracing::info!("✅ Connection to the database is successful!");
             pool
         }
         Err(err) => {
-            error!("🔥 Failed to connect to the database: {err:?}");
+            tracing::error!("🔥 Failed to connect to the database: {err:?}");
             exit(1);
         }
     };
@@ -78,10 +71,10 @@ async fn main() -> std::io::Result<()> {
     // Run the database migrations
     match migrate!().run(&pool).await {
         Ok(_) => {
-            info!("✅ Migration is successful!");
+            tracing::info!("✅ Migration is successful!");
         }
         Err(err) => {
-            error!("🔥 Migration failed: {err:?}");
+            tracing::error!("🔥 Migration failed: {err:?}");
             exit(1);
         }
     }
@@ -156,7 +149,7 @@ async fn main() -> std::io::Result<()> {
             {
                 Ok(_) => {}
                 Err(error) => {
-                    error!("###  View Stream closed with error: {} ###", error.message);
+                    tracing::error!("###  View Stream closed with error: {} ###", error.message);
                     break;
                 }
             }
@@ -164,19 +157,19 @@ async fn main() -> std::io::Result<()> {
             match stream_events_to_saga(order_saga_manager.clone(), &db).await {
                 Ok(_) => {}
                 Err(error) => {
-                    error!("###  Saga Stream closed with error: {} ###", error.message);
+                    tracing::error!("###  Saga Stream closed with error: {} ###", error.message);
                     break;
                 }
             }
 
             tokio::select! {
                 _ = sleep(Duration::from_secs(1)) => {
-                    debug!("### Waiting for 1 second ###");
+                    tracing::debug!("### Waiting for 1 second ###");
                     continue;
                 }
 
                 _ = background_task_cancellation_clone.cancelled() => {
-                    info!("### Gracefully shutting event handler ###");
+                    tracing::info!("### Gracefully shutting event handler ###");
                     break;
                 }
             };
@@ -205,8 +198,8 @@ async fn main() -> std::io::Result<()> {
         App::new()
             .app_data(application.clone())
             .configure(handler::config)
-            .wrap(cors)
             .wrap(Logger::default())
+            .wrap(cors)
     })
     .bind(("127.0.0.1", 8000))?
     .run()
@@ -215,7 +208,21 @@ async fn main() -> std::io::Result<()> {
     background_task_cancellation.cancel();
 
     background_task.await?;
-    info!("### Application gracefully shut down ###");
+    tracing::info!("### Application gracefully shut down ###");
 
     Ok(())
+}
+
+fn init_logger() {
+    INIT.call_once(|| {
+        let subscriber = tracing_subscriber::registry()
+            .with(
+                tracing_subscriber::EnvFilter::try_from_default_env()
+                    .unwrap_or_else(|_| "info".into()), // 👈 Set default to `info`
+            )
+            .with(tracing_subscriber::fmt::layer());
+
+        tracing::subscriber::set_global_default(subscriber)
+            .expect("setting default subscriber failed");
+    });
 }

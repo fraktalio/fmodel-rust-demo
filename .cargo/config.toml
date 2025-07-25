@@ -1,0 +1,6 @@
+[env]
+RUST_LOG="DEBUG"
+RUST_LOG_STYLE="ALWAYS"
+
+DATABASE_URL="postgresql://admin:password123@localhost:6500/fmodel"
+SQLX_OFFLINE="true"

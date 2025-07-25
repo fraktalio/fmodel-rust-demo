@@ -7,7 +7,7 @@ use crate::adapter::repository::order_view_state_repository::OrderViewStateRepos
 use crate::adapter::repository::restaurant_view_state_repository::RestaurantViewStateRepository;
 use crate::application::api::{OrderMaterializedView, RestaurantMaterializedView};
 use crate::Database;
-use log::{debug, error, warn};
+use tracing::{debug, error, warn};
 
 /// Stream events to the materialized view - Simple implementation
 pub async fn stream_events_to_view(

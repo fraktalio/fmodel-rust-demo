@@ -1,12 +1,13 @@
 use std::sync::Arc;
 
+use tracing::{debug, error, warn};
+
 use crate::adapter::database::error::ErrorMessage;
 use crate::adapter::database::queries::{ack_event, nack_event, stream_events};
 use crate::adapter::publisher::order_action_publisher::OrderActionPublisher;
 use crate::adapter::repository::event_repository::ToEvent;
 use crate::application::api::OrderSagaManager;
 use crate::Database;
-use log::{debug, error, warn};
 
 /// Stream events to the saga manager - Simple implementation
 pub async fn stream_events_to_saga(

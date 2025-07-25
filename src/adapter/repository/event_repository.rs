@@ -35,7 +35,7 @@ where
         + ToEventEntity,
 {
     async fn fetch_events(&self, command: &C) -> Result<Vec<(E, Uuid)>, ErrorMessage> {
-        log::debug!("Fetching events for command: {:?}", command.identifier());
+        tracing::debug!("Fetching events for command: {:?}", command.identifier());
         list_events(&command.identifier(), &self.database)
             .await?
             .into_iter()
@@ -70,7 +70,7 @@ where
             // Update the latest version of the event for this partition/stream/decider_id
             latest_versions.insert(event.identifier().to_owned(), event_request.event_id);
         }
-        log::debug!("Saving events...");
+        tracing::debug!("Saving events...");
         append_events(&new_events, &self.database).await?;
         Ok(result_events)
     }
