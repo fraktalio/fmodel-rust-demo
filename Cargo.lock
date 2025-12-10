@@ -636,9 +636,9 @@ dependencies = [
 
 [[package]]
 name = "fmodel-rust"
-version = "0.8.1"
+version = "0.9.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "235160bca199fa04602529e063337bf3c31f69f6cd3770d38386595ea1fb5aee"
+checksum = "2450c2257e47407ecd13d1491b51bedd5201a6b06c5b98ed1aae8d57098086cb"
 dependencies = [
  "pretty_assertions",
  "serde",
